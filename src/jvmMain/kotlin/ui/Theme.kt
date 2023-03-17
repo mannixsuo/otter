@@ -10,6 +10,7 @@ object AppTheme {
     val code: Code = Code()
 
     class Colors(
+        var yellow: Color = Color.Yellow,
         val backgroundDark: Color = Color(0xFF2B2B2B),
         val backgroundMedium: Color = Color(0xFF3C3F41),
         val backgroundLight: Color = Color(0xFF4E5254),

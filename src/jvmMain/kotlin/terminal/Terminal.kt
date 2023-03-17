@@ -6,8 +6,9 @@ import org.slf4j.LoggerFactory
 import parser.Parser
 import shell.Shell
 import terminal.service.BufferService
+import terminal.service.CharacterService
 import terminal.service.IBufferService
-import ui.AppTheme
+import terminal.service.TableStopService
 import ui.SingleSelection
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -19,6 +20,8 @@ class Terminal(val shell: Shell, val terminalConfig: TerminalConfig) {
     val terminalOutputProcessor = TerminalOutputProcessor(this)
     val title: String = "Terminal Title"
     val state = TerminalState()
+
+    val tableStopService = TableStopService(terminalConfig.columns, terminalConfig.rows)
 
     var close: (() -> Unit) = fun() { stop() }
     var onLineChange: (() -> Unit)? = null
@@ -52,11 +55,7 @@ class Terminal(val shell: Shell, val terminalConfig: TerminalConfig) {
     private val channelOutputStreamWriter = shell.getChannelOutputStreamWriter()
     private val parser: Parser = Parser(this)
 
-
-    var nextCharFgColor = AppTheme.colors.material.primary
-    var nextCharBgColor = AppTheme.colors.material.background
-    var nextCharBold = false
-    var nextCharItalic = false
+    val characterService = CharacterService()
 
 
     fun start() {

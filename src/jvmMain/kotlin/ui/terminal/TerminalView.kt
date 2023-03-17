@@ -63,7 +63,7 @@ fun LineContent(line: ILine, cursorOnThisLine: Boolean, cursorX: Int) {
                         .drawWithContent {
                             drawRect(Color.White)
                         },
-                    text = " ",
+                    text = "_",
                 )
             }
         }

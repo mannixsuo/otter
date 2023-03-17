@@ -259,4 +259,46 @@ class CSIProcessor(private val terminal: Terminal) {
     fun deleteCharacters(params: Array<Int>) {
         TODO("Not yet implemented")
     }
+
+    /**
+     * CSI ? Pm h
+     * DEC Private Mode Set (DECSET).
+     */
+    fun decPrivateModeSet(params: Array<Int>) {
+        for (param in params) {
+            when (param) {
+                1 -> terminal.state.applicationCursorKeys()
+                25 -> terminal.state.showCursor()
+
+            }
+        }
+    }
+
+    /**
+     * CSI ? Pm l
+     *           DEC Private Mode Reset (DECRST).
+     */
+    fun decPrivateModeReSet(params: Array<Int>) {
+        for (param in params) {
+            when (param) {
+                1 -> terminal.state.normalCursorKeys()
+                25 -> terminal.state.hideCursor()
+
+            }
+        }
+    }
+
+    /**
+     * CSI Pm m  Character Attributes (SGR).
+     */
+    fun characterAttributes(params: Array<Int>) {
+        for (param in params) {
+            when (param) {
+                0 -> terminal.characterService.normal()
+                1 -> terminal.characterService.bold()
+                3 -> terminal.characterService.italicized()
+                33, 93 -> terminal.characterService.fgYellow()
+            }
+        }
+    }
 }

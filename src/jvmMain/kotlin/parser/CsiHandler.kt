@@ -63,25 +63,31 @@ class CsiHandler(private val terminalInputProcessor: TerminalInputProcessor) {
 
     init {
         with(commandExecutorMap) {
-            put(CsiCommand('@', null, null).key()) { params -> terminalInputProcessor.csiProcessor.insertChars(params) }
-            put(CsiCommand('@', null, ' ').key()) { params -> terminalInputProcessor.csiProcessor.shiftLeft(params) }
-            put(CsiCommand('A', null, null).key()) { params -> terminalInputProcessor.csiProcessor.cursorUp(params) }
-            put(CsiCommand('A', null, ' ').key()) { params -> terminalInputProcessor.csiProcessor.cursorRight(params) }
-            put(CsiCommand('B', null, null).key()) { params -> terminalInputProcessor.csiProcessor.cursorDown(params) }
-            put(CsiCommand('C', null, null).key()) { params -> terminalInputProcessor.csiProcessor.cursorForward(params) }
-            put(CsiCommand('D', null, null).key()) { params -> terminalInputProcessor.csiProcessor.cursorBackward(params) }
-            put(CsiCommand('E', null, null).key()) { params -> terminalInputProcessor.csiProcessor.cursorNextLine(params) }
-            put(CsiCommand('F', null, null).key()) { params -> terminalInputProcessor.csiProcessor.cursorPrecedingLine(params) }
-            put(CsiCommand('G', null, null).key()) { params -> terminalInputProcessor.csiProcessor.cursorCharacterAbsolute(params) }
-            put(CsiCommand('H', null, null).key()) { params -> terminalInputProcessor.csiProcessor.cursorPosition(params) }
-            put(CsiCommand('I', null, null).key()) { params -> terminalInputProcessor.csiProcessor.cursorForwardTabulation(params) }
-            put(CsiCommand('J', null, null).key()) { params -> terminalInputProcessor.csiProcessor.eraseInDisplay(params) }
-            put(CsiCommand('J', '?', null).key()) { params -> terminalInputProcessor.csiProcessor.eraseInDisplaySelective(params) }
-            put(CsiCommand('K', null, null).key()) { params -> terminalInputProcessor.csiProcessor.eraseInLine(params) }
-            put(CsiCommand('K', '?', null).key()) { params -> terminalInputProcessor.csiProcessor.eraseInLineSelective(params) }
-            put(CsiCommand('L', null, null).key()) { params -> terminalInputProcessor.csiProcessor.insertLines(params) }
-            put(CsiCommand('M', null, null).key()) { params -> terminalInputProcessor.csiProcessor.deleteLines(params) }
-            put(CsiCommand('P', null, null).key()) { params -> terminalInputProcessor.csiProcessor.deleteCharacters(params) }
+            with(terminalInputProcessor.csiProcessor){
+                put(CsiCommand('@', null, null).key()) { params -> insertChars(params) }
+                put(CsiCommand('@', null, ' ').key()) { params -> shiftLeft(params) }
+                put(CsiCommand('A', null, null).key()) { params -> cursorUp(params) }
+                put(CsiCommand('A', null, ' ').key()) { params -> cursorRight(params) }
+                put(CsiCommand('B', null, null).key()) { params -> cursorDown(params) }
+                put(CsiCommand('C', null, null).key()) { params -> cursorForward(params) }
+                put(CsiCommand('D', null, null).key()) { params -> cursorBackward(params) }
+                put(CsiCommand('E', null, null).key()) { params -> cursorNextLine(params) }
+                put(CsiCommand('F', null, null).key()) { params -> cursorPrecedingLine(params) }
+                put(CsiCommand('G', null, null).key()) { params -> cursorCharacterAbsolute(params) }
+                put(CsiCommand('H', null, null).key()) { params -> cursorPosition(params) }
+                put(CsiCommand('I', null, null).key()) { params -> cursorForwardTabulation(params) }
+                put(CsiCommand('J', null, null).key()) { params -> eraseInDisplay(params) }
+                put(CsiCommand('J', '?', null).key()) { params -> eraseInDisplaySelective(params) }
+                put(CsiCommand('K', null, null).key()) { params -> eraseInLine(params) }
+                put(CsiCommand('K', '?', null).key()) { params -> eraseInLineSelective(params) }
+                put(CsiCommand('L', null, null).key()) { params -> insertLines(params) }
+                put(CsiCommand('M', null, null).key()) { params -> deleteLines(params) }
+                put(CsiCommand('P', null, null).key()) { params -> deleteCharacters(params) }
+                put(CsiCommand('h', '?', null).key()) { params -> decPrivateModeSet(params) }
+                put(CsiCommand('l', '?', null).key()) { params -> decPrivateModeReSet(params) }
+                put(CsiCommand('m', null, null).key()) { params -> characterAttributes(params) }
+            }
+
         }
     }
 }

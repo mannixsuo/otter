@@ -27,10 +27,10 @@ class TerminalOutputProcessor(private val terminal: Terminal) {
 fun buildCell(char: Char, terminal: Terminal): ICell {
     return Cell(
         char,
-        terminal.nextCharBgColor,
-        terminal.nextCharFgColor,
-        terminal.nextCharBold,
-        terminal.nextCharItalic
+        terminal.characterService.getCharBg(),
+        terminal.characterService.getCharFg(),
+        terminal.characterService.getCharBold(),
+        terminal.characterService.getCharItalic()
     )
 }
 
