@@ -192,7 +192,9 @@ class Parser(private val terminal: Terminal) {
             addRange(0x20, 0x7f, ParserState.OSC_STRING, ParserAction.OSC_PUT, ParserState.OSC_STRING)
 
             // exit / osc_end
+            // when ST or BEL then osc end
             add(0x9c, ParserState.OSC_STRING, ParserAction.OSC_END, ParserState.GROUND)
+            add(0x07, ParserState.OSC_STRING, ParserAction.OSC_END, ParserState.GROUND)
 
             // ---------------------------- dcs -------------------------------------------
             // escape -> dcs entry 50

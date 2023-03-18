@@ -50,15 +50,11 @@ class SingleCharacterFunProcessor(private val terminal: Terminal) {
 
     /**
      * Move the cursor to the next tab stop, or to the right margin if no further tab stops are present on the line.
+     * 8 elements a tab
      */
     private fun ht() {
-        // TODO  need fix
         val nextHorizontalTableStop = terminal.tableStopService.getNextHorizontalTableStop(terminal.cursorX)
-        if (nextHorizontalTableStop == null) {
-            terminal.cursorX = terminal.terminalConfig.columns - 1
-        } else {
-            terminal.cursorX = nextHorizontalTableStop
-        }
+        terminal.cursorX = nextHorizontalTableStop
     }
 
     /**

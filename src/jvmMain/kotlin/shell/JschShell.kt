@@ -16,7 +16,7 @@ class JschShell(val host: String, val port: Int, val userName: String, val passw
         session.userInfo = UserInfoImpl()
         session.connect()
         val channel = session.openChannel("shell") as ChannelShell
-        channel.setPtyType("vt100")
+        channel.setPtyType("xterm")
         channel.setPtySize(110, 30, 0, 0)
         channel.connect()
         inputStreamReader = InputStreamReader(channel.inputStream)

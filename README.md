@@ -21,3 +21,9 @@ There a long way to go....
 ```
 ./gradlew run
 ```
+
+```shell
+# You can run these commands inside the terminal window to get the lines and columns respectively:
+tput lines
+tput cols 
+```

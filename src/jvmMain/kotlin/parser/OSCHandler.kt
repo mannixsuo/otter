@@ -13,6 +13,10 @@ class OSCHandler {
     }
 
     fun finish() {
-//        TODO("Not yet implemented")
+        handleOscCommand(buffer)
+    }
+
+    private fun handleOscCommand(buffer: StringBuffer) {
+        println(buffer)
     }
 }
