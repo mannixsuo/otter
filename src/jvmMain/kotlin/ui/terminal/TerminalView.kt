@@ -11,25 +11,64 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.input.pointer.AwaitPointerEventScope
+import androidx.compose.ui.input.pointer.PointerEvent
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.pointerInput
 import terminal.ILine
+import terminal.Terminal
 import ui.AppTheme
 import ui.font.Fonts.jetbrainsMono
-import java.lang.Math.max
 
+private suspend fun AwaitPointerEventScope.awaitScrollEvent(): PointerEvent {
+    var event: PointerEvent
+    do {
+        event = awaitPointerEvent()
+    } while (event.type != PointerEventType.Scroll)
+    return event
+}
 
 @Composable
-fun TerminalView(cursorX: Int = 0, cursorY: Int = 0, lines: List<ILine>) {
+fun TerminalView(terminal: Terminal) {
+
     Surface {
         SelectionContainer {
             Column(
-                modifier = Modifier.fillMaxWidth().background(AppTheme.colors.material.background),
+                modifier = Modifier.fillMaxWidth().background(AppTheme.colors.material.background)
+                    .pointerInput(terminal) {
+                        awaitPointerEventScope {
+                            while (true) {
+                                val event = awaitScrollEvent()
+                                val y = event.changes[0].scrollDelta.y
+                                val x = event.changes[0].scrollDelta.x
+                                if (y.compareTo(0) != 0) {
+                                    terminal.scrollY += y.toInt()
+                                    if (terminal.scrollY < 0) {
+                                        terminal.scrollY = 0
+                                    }
+                                }
+                                if (x.compareTo(0) != 0) {
+                                    terminal.scrollX += x.toInt()
+                                    if (terminal.scrollX < 0) {
+                                        terminal.scrollX = 0
+                                    }
+                                }
+                            }
+                        }
+                    },
             ) {
-                for (index in lines.indices)
-                    Line(lines[index], index == cursorY, cursorX)
+                for (index in terminal.bufferService.getActiveBuffer()
+                    .getLines(
+                        IntRange(
+                            terminal.scrollY,
+                            terminal.scrollY + terminal.terminalConfig.rows
+                        )
+                    ).indices) Line(
+                    terminal.bufferService.getActiveBuffer()
+                        .getLines(IntRange(terminal.scrollY, terminal.scrollY + terminal.terminalConfig.rows))[index],
+                    index == terminal.cursorY,
+                    terminal.cursorX
+                )
             }
         }
     }
@@ -47,9 +86,7 @@ fun LineContent(line: ILine, cursorOnThisLine: Boolean, cursorX: Int) {
 
     Row {
         Text(
-            text = line.toAnnotatedString(cursorOnThisLine, cursorX),
-            fontFamily = jetbrainsMono(),
-            softWrap = false
+            text = line.toAnnotatedString(cursorOnThisLine, cursorX), fontFamily = jetbrainsMono(), softWrap = false
         )
 
         if (cursorOnThisLine) {
@@ -59,10 +96,9 @@ fun LineContent(line: ILine, cursorOnThisLine: Boolean, cursorX: Int) {
                     Text(" ")
                 }
                 Text(
-                    modifier = Modifier
-                        .drawWithContent {
-                            drawRect(Color.White)
-                        },
+                    modifier = Modifier.drawWithContent {
+                        drawRect(Color.White)
+                    },
                     text = "_",
                 )
             }

@@ -1,5 +1,8 @@
 package terminal
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.input.key.*
 import org.slf4j.LoggerFactory
@@ -39,16 +42,16 @@ class Terminal(val shell: Shell, val terminalConfig: TerminalConfig) {
     /**
      * current cursor position x
      */
-    var cursorX = 0
+    var cursorX by mutableStateOf(0)
 
-    var scrollX = 0
+    var scrollX by mutableStateOf(0)
 
     /**
      * current cursor position y
      */
-    var cursorY = 0
+    var cursorY by mutableStateOf(0)
 
-    var scrollY = 0
+    var scrollY by mutableStateOf(0)
 
 
     private val channelInputStreamReader = shell.getChannelInputStreamReader()
