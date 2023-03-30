@@ -17,7 +17,7 @@ class Parser(private val terminal: Terminal) {
     private var params = Params()
     private var collect = Stack<Char>()
     private val transitionTable = TransitionTable(4096)
-    private val oscHandler = OSCHandler()
+    private val oscHandler = OSCHandler(terminal)
     private var dcsHandler = DCSHandler()
     private val terminalInputProcessor = TerminalInputProcessor(terminal)
     private val csiHandler = CsiHandler(terminalInputProcessor)
@@ -294,13 +294,6 @@ class Parser(private val terminal: Terminal) {
         }
     }
 
-    fun onIntArray(intArray: Array<Int>) {
-        intArray.forEach { onChar(it) }
-    }
-
-    fun onCharArray(charArray: Array<Char>) {
-        charArray.forEach { onChar(it.code) }
-    }
 
     fun onCharArray(charArray: CharArray) {
         charArray.forEach { onChar(it.code) }

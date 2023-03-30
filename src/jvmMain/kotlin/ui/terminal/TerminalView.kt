@@ -3,9 +3,8 @@ package ui.terminal
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -31,48 +30,58 @@ private suspend fun AwaitPointerEventScope.awaitScrollEvent(): PointerEvent {
 @Composable
 fun TerminalView(terminal: Terminal) {
 
-    Surface {
-        SelectionContainer {
-            Column(
-                modifier = Modifier.fillMaxWidth().background(AppTheme.colors.material.background)
-                    .pointerInput(terminal) {
-                        awaitPointerEventScope {
-                            while (true) {
-                                val event = awaitScrollEvent()
-                                val y = event.changes[0].scrollDelta.y
-                                val x = event.changes[0].scrollDelta.x
-                                if (y.compareTo(0) != 0) {
-                                    terminal.scrollY += y.toInt()
-                                    if (terminal.scrollY < 0) {
-                                        terminal.scrollY = 0
-                                    }
+//    Surface(modifier = Modifier.padding(4.dp)) {
+    SelectionContainer(modifier = Modifier.background(Color.White)) {
+        Column(
+            modifier = Modifier.fillMaxSize().background(AppTheme.colors.material.background)
+                .pointerInput(terminal) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitScrollEvent()
+                            val y = event.changes[0].scrollDelta.y
+                            if (y.compareTo(0) != 0) {
+                                if (terminal.bufferService.getActiveBuffer()
+                                        .lineCount() < terminal.terminalConfig.rows
+                                ) {
+                                    continue
                                 }
-                                if (x.compareTo(0) != 0) {
-                                    terminal.scrollX += x.toInt()
-                                    if (terminal.scrollX < 0) {
-                                        terminal.scrollX = 0
-                                    }
+                                terminal.scrollState.y += y.toInt()
+                                if (terminal.scrollState.y < 0) {
+                                    terminal.scrollState.y = 0
+                                }
+                                if (terminal.bufferService.getActiveBuffer()
+                                        .lineCount() - terminal.scrollState.y < terminal.terminalConfig.rows
+                                ) {
+                                    terminal.scrollState.y = terminal.bufferService.getActiveBuffer()
+                                        .lineCount() - terminal.terminalConfig.rows
                                 }
                             }
                         }
-                    },
-            ) {
-                for (index in terminal.bufferService.getActiveBuffer()
-                    .getLines(
-                        IntRange(
-                            terminal.scrollY,
-                            terminal.scrollY + terminal.terminalConfig.rows
-                        )
-                    ).indices) Line(
-                    terminal.bufferService.getActiveBuffer()
-                        .getLines(IntRange(terminal.scrollY, terminal.scrollY + terminal.terminalConfig.rows))[index],
-                    index == terminal.cursorY,
-                    terminal.cursorX
+                    }
+                },
+        ) {
+            with(terminal.bufferService.getActiveBuffer()) {
+                val lines = getLines(
+                    IntRange(
+                        terminal.scrollState.y,
+                        terminal.scrollState.y + terminal.terminalConfig.rows
+                    )
                 )
+                for (index in lines.indices) {
+                    Row {
+//                            Text("$index")
+                        Line(
+                            lines[index],
+                            terminal.scrollState.y + index == terminal.scrollY + terminal.cursorY,
+                            terminal.cursorX
+                        )
+                    }
+                }
             }
         }
     }
 }
+//}
 
 
 // cursorBlink: () -> Boolean : use function so only rows that cursor affects repaint every time cursor blink

@@ -2,7 +2,9 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Snackbar
 import androidx.compose.material.Surface
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.BitmapPainter
@@ -61,6 +63,7 @@ val emptyCell = Cell(
 @Composable
 @Preview
 fun App(appState: CoCoTerminalAppState) {
+
     VerticalSplittableForTwoElements(Modifier.fillMaxSize(),
         appState.splitterState,
         onResize = {
@@ -72,14 +75,18 @@ fun App(appState: CoCoTerminalAppState) {
             appState.sessionSelectionState,
             onAddClick = {
                 appState.windowState = AppWindowState.ADD_SESSION
-            }, onSessionDoubleClick = {
+            }, onSessionDoubleClick = { it ->
                 val shell = JschShell(it.host, it.port, it.user, it.password)
                 val terminal = Terminal(shell, terminalConfig)
-                terminal.start()
-                appState.terminals.addNewTerminal(terminal)
-                appState.sessions.add(it)
+                if (terminal.start() == 0) {
+                    appState.terminals.addNewTerminal(terminal)
+                    appState.sessions.add(it)
+                } else {
+                    TODO()
+                }
             })
         TerminalViews(appState)
+
     }
 
 }
@@ -111,10 +118,10 @@ fun main() = singleWindowApplication(
                     writeConfigToFile(appConfig)
                     appState.sessions.add(it)
                 }) { appState.windowState = AppWindowState.NORMAL }
-
                 else -> App(appState)
             }
         }
+
     }
     val parentLogger = LoggerFactory.getLogger("kotlin") as Logger
     parentLogger.level = Level.DEBUG

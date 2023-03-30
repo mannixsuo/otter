@@ -13,22 +13,24 @@ import terminal.service.CharacterService
 import terminal.service.IBufferService
 import terminal.service.TableStopService
 import ui.SingleSelection
+import ui.scroll.ScrollState
 
 @OptIn(ExperimentalComposeUiApi::class)
 class Terminal(val shell: Shell, val terminalConfig: TerminalConfig) {
+
+    var errorInfo: String? = null
     val keyboard = Keyboard()
     private val logger = LoggerFactory.getLogger(Terminal::class.java)
     val bufferService: IBufferService = BufferService()
     val terminalInputProcessor = TerminalInputProcessor(this)
     val terminalOutputProcessor = TerminalOutputProcessor(this)
-    val title: String = "Terminal Title"
+    var title: String by mutableStateOf("Terminal")
     val state = TerminalState()
 
     val tableStopService = TableStopService(terminalConfig.columns, terminalConfig.rows)
 
     var close: (() -> Unit) = fun() { stop() }
-    var onLineChange: (() -> Unit)? = null
-    var viewInitialized: (() -> Boolean) = { false }
+    val scrollState by mutableStateOf(ScrollState())
 
     lateinit var selection: SingleSelection
     val isActive: Boolean
@@ -36,7 +38,6 @@ class Terminal(val shell: Shell, val terminalConfig: TerminalConfig) {
 
     fun activate() {
         selection.selected = this
-        onLineChange?.invoke()
     }
 
     /**
@@ -61,8 +62,15 @@ class Terminal(val shell: Shell, val terminalConfig: TerminalConfig) {
     val characterService = CharacterService()
 
 
-    fun start() {
-        startReadFromChannel()
+    fun start(): Int {
+        try {
+            startReadFromChannel()
+        } catch (exception: Exception) {
+            logger.error("error start terminal", exception)
+            errorInfo = exception.message
+            return -1
+        }
+        return 0
     }
 
     fun stop() {
@@ -93,19 +101,18 @@ class Terminal(val shell: Shell, val terminalConfig: TerminalConfig) {
             val buf = CharArray(1024)
             var length: Int
             while (channelInputStreamReader.read(buf).also { length = it } != -1) {
+                if (logger.isDebugEnabled) {
+                    logger.debug("read from channel")
+                    logger.debug(String(buf, 0, length))
+                }
                 parser.onCharArray(buf.copyOfRange(0, length))
-                print(String(buf, 0, length))
-                refreshUI()
+                restrictCursor()
             }
         }.start()
     }
 
-    fun refreshUI() {
-        if (viewInitialized()) {
-            if (isActive) {
-                onLineChange?.invoke()
-            }
-        }
+    private fun restrictCursor() {
+        scrollState.y = Math.max(bufferService.getActiveBuffer().lineCount() - terminalConfig.rows, 0)
     }
 
 }

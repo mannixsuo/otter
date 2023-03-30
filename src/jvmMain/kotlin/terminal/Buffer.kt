@@ -21,6 +21,8 @@ interface ILineBuffer {
      */
     fun getLines(range: IntRange): List<ILine>
 
+    fun getAllLines(): List<ILine>
+
     /**
      * append line to the buffer
      */
@@ -60,37 +62,72 @@ class LineBuffer : ILineBuffer {
 
 
     override fun getLine(index: Int): ILine? {
-        if (_buffer.size == 0) {
-            return null
+        try {
+            lock.lock()
+            if (_buffer.size == 0) {
+                return null
+            }
+            if (index >= _buffer.size) {
+                return null
+            }
+            return _buffer[index]
+        } finally {
+            lock.unlock()
         }
-        if (index >= _buffer.size) {
-            return null
+    }
+
+    override fun getAllLines(): List<ILine> {
+        try {
+            lock.lock()
+            return _buffer
+        } finally {
+            lock.unlock()
         }
-        return _buffer[index]
     }
 
     override fun getLines(range: IntRange): List<ILine> {
-        val start = 0.coerceAtLeast(range.first)
-        val end = (_buffer.size - 1).coerceAtMost(range.last)
-        return _buffer.slice(IntRange(start, end))
+        try {
+            lock.lock()
+            val start = 0.coerceAtLeast(range.first)
+            val end = (_buffer.size - 1).coerceAtMost(range.last - 1)
+            return _buffer.slice(IntRange(start, end))
+        } finally {
+            lock.unlock()
+        }
+
     }
 
     override fun appendLine(line: ILine) {
-        _buffer.add(line)
+        try {
+            lock.lock()
+            _buffer.add(line)
+        } finally {
+            lock.unlock()
+        }
     }
 
     override fun insertLine(index: Int, line: ILine) {
-        if (index >= _buffer.size) {
-            for (i in 0..index - _buffer.size) {
-                _buffer.add(Line(line.maxLength()))
+        try {
+            lock.lock()
+            if (index >= _buffer.size) {
+                for (i in 0..index - _buffer.size) {
+                    _buffer.add(Line(line.maxLength()))
+                }
             }
+            _buffer[index] = line
+        } finally {
+            lock.unlock()
         }
-        _buffer[index] = line
     }
 
     override fun deleteLine(index: Int) {
-        if (index in 0 until _buffer.size) {
-            _buffer.removeAt(index)
+        try {
+            lock.lock()
+            if (index in 0 until _buffer.size) {
+                _buffer.removeAt(index)
+            }
+        } finally {
+            lock.unlock()
         }
     }
 

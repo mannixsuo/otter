@@ -7,17 +7,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import ui.AppTheme
 
 @Composable
 fun TerminalViews(model: CoCoTerminalAppState) {
-
-    LaunchedEffect(true) {
-        model.terminals.initialized = true
-        model.terminals.activeTerminal?.onLineChange?.invoke()
-    }
 
     Box {
         Column {

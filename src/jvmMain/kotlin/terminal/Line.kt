@@ -1,13 +1,11 @@
 package terminal
 
-import androidx.compose.material.Text
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import emptyCell
 
 /**
@@ -173,39 +171,28 @@ class Line(private val maxLength: Int) : ILine {
     }
 
     override fun toAnnotatedString(cursorOnThisLine: Boolean, cursorX: Int): AnnotatedString {
-        val builder = AnnotatedString.Builder()
-        if (_length > 0) {
+        return buildAnnotatedString {
             for (index in 0 until _length.coerceAtLeast(cursorX)) {
-                val cell = getCell(index)
                 val cursorInThisPosition: Boolean = cursorOnThisLine && cursorX == index
-                cell.let {
-                    if (it.char.code == 0) {
-                        if (cursorInThisPosition) {
-                            builder.append("_")
-                        } else {
-                            builder.append(' ')
-                        }
-                    } else {
-                        builder.append(it.char)
+
+                with(getCell(index)) {
+                    var text = char
+                    if (char.code == 0) {
+                        text = if (cursorInThisPosition) '_' else ' '
                     }
-                    var bg = it.bg
-                    var fg = it.fg
-                    if (cursorInThisPosition) {
-                        bg = it.fg
-                        fg = it.bg
+                    withStyle(
+                        style = SpanStyle(
+                            background = if (cursorInThisPosition) fg else bg,
+                            color = if (cursorInThisPosition) bg else fg,
+                            fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal,
+                            fontStyle = if (italic) FontStyle.Italic else FontStyle.Normal
+                        )
+                    ) {
+                        append(text)
                     }
-                    val style = SpanStyle(
-                        background = bg,
-                        color = fg,
-                        fontWeight = if (it.bold) FontWeight.Bold else FontWeight.Normal,
-                        fontStyle = if (it.italic) FontStyle.Italic else FontStyle.Normal
-                    )
-                    builder.addStyle(style, index, index + 1)
                 }
             }
         }
-
-        return builder.toAnnotatedString()
     }
 
     override fun toString(): String {
