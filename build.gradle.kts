@@ -21,7 +21,7 @@ repositories {
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "16"
+            kotlinOptions.jvmTarget = "17"
         }
         withJava()
     }

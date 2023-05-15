@@ -1,22 +1,19 @@
 package ui.terminal
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import terminal.ILine
 import terminal.Terminal
-import ui.AppTheme
 import ui.font.Fonts.jetbrainsMono
 
 private suspend fun AwaitPointerEventScope.awaitScrollEvent(): PointerEvent {
@@ -30,10 +27,9 @@ private suspend fun AwaitPointerEventScope.awaitScrollEvent(): PointerEvent {
 @Composable
 fun TerminalView(terminal: Terminal) {
 
-//    Surface(modifier = Modifier.padding(4.dp)) {
-    SelectionContainer(modifier = Modifier.background(Color.White)) {
+    SelectionContainer() {
         Column(
-            modifier = Modifier.fillMaxSize().background(AppTheme.colors.material.background)
+            modifier = Modifier.fillMaxSize()
                 .pointerInput(terminal) {
                     awaitPointerEventScope {
                         while (true) {
@@ -69,7 +65,6 @@ fun TerminalView(terminal: Terminal) {
                 )
                 for (index in lines.indices) {
                     Row {
-//                            Text("$index")
                         Line(
                             lines[index],
                             terminal.scrollState.y + index == terminal.scrollY + terminal.cursorY,
@@ -81,7 +76,6 @@ fun TerminalView(terminal: Terminal) {
         }
     }
 }
-//}
 
 
 // cursorBlink: () -> Boolean : use function so only rows that cursor affects repaint every time cursor blink
@@ -95,7 +89,9 @@ fun LineContent(line: ILine, cursorOnThisLine: Boolean, cursorX: Int) {
 
     Row {
         Text(
-            text = line.toAnnotatedString(cursorOnThisLine, cursorX), fontFamily = jetbrainsMono(), softWrap = false
+            text = line.toAnnotatedString(cursorOnThisLine, cursorX, MaterialTheme.colors),
+            fontFamily = jetbrainsMono(),
+            softWrap = false
         )
 
         if (cursorOnThisLine) {
@@ -105,9 +101,6 @@ fun LineContent(line: ILine, cursorOnThisLine: Boolean, cursorX: Int) {
                     Text(" ")
                 }
                 Text(
-                    modifier = Modifier.drawWithContent {
-                        drawRect(Color.White)
-                    },
                     text = "_",
                 )
             }

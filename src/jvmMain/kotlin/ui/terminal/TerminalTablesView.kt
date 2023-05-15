@@ -8,10 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material.Icon
-import androidx.compose.material.LocalContentColor
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
@@ -22,7 +19,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ui.AppTheme
 
 @Composable
 fun TerminalTablesView(model: Terminals) = Row(Modifier.horizontalScroll(rememberScrollState())) {
@@ -50,7 +46,7 @@ fun TerminalTableView(
     } else {
         0.dp
     },
-    color = if (isActive) AppTheme.colors.backgroundDark else Color.Transparent
+    color = if (isActive) MaterialTheme.colors.background else Color.Transparent
 ) {
     Row(
         Modifier

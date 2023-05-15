@@ -45,7 +45,7 @@ fun SessionSelection(
     } else {
         animateDpAsState(
             if (sessionSelectionState.isExpanded) sessionSelectionState.expandedSize else sessionSelectionState.collapsedSize,
-            SpringSpec(stiffness = Spring.StiffnessLow)
+            SpringSpec(stiffness = Spring.StiffnessMedium)
         ).value
     }
     ResizablePanel(

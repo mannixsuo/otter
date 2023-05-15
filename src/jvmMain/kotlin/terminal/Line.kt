@@ -1,5 +1,6 @@
 package terminal
 
+import androidx.compose.material.Colors
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -79,7 +80,7 @@ interface ILine {
      */
     fun length(): Int
 
-    fun toAnnotatedString(cursorOnThisLine: Boolean, cursorX: Int): AnnotatedString
+    fun toAnnotatedString(cursorOnThisLine: Boolean, cursorX: Int, colors: Colors): AnnotatedString
 }
 
 class Line(private val maxLength: Int) : ILine {
@@ -170,7 +171,7 @@ class Line(private val maxLength: Int) : ILine {
         return _length
     }
 
-    override fun toAnnotatedString(cursorOnThisLine: Boolean, cursorX: Int): AnnotatedString {
+    override fun toAnnotatedString(cursorOnThisLine: Boolean, cursorX: Int, colors: Colors): AnnotatedString {
         return buildAnnotatedString {
             for (index in 0 until _length.coerceAtLeast(cursorX)) {
                 val cursorInThisPosition: Boolean = cursorOnThisLine && cursorX == index
@@ -180,13 +181,22 @@ class Line(private val maxLength: Int) : ILine {
                     if (char.code == 0) {
                         text = if (cursorInThisPosition) '_' else ' '
                     }
-                    withStyle(
-                        style = SpanStyle(
-                            background = if (cursorInThisPosition) fg else bg,
-                            color = if (cursorInThisPosition) bg else fg,
+                    var spanStyle = SpanStyle(
+                        fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal,
+                        fontStyle = if (italic) FontStyle.Italic else FontStyle.Normal
+                    )
+
+                    if (cursorInThisPosition) {
+                        spanStyle = SpanStyle(
+                            background = colors.primary,
+                            color = colors.background,
                             fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal,
                             fontStyle = if (italic) FontStyle.Italic else FontStyle.Normal
                         )
+                    }
+
+                    withStyle(
+                        style = spanStyle
                     ) {
                         append(text)
                     }

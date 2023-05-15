@@ -20,7 +20,6 @@ fun TerminalViews(model: CoCoTerminalAppState) {
                 Modifier
                     .weight(1f)
                     .fillMaxSize()
-                    .background(AppTheme.colors.material.background)
             ) {
                 val terminal = model.terminals.activeTerminal
                 if (terminal == null) {

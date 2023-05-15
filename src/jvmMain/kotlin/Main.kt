@@ -1,10 +1,7 @@
 // Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Snackbar
 import androidx.compose.material.Surface
-import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.BitmapPainter
@@ -13,6 +10,7 @@ import androidx.compose.ui.res.useResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.singleWindowApplication
+import androidx.compose.ui.zIndex
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
 import com.pty4j.PtyProcessBuilder
@@ -29,7 +27,6 @@ import terminal.TerminalConfig
 import ui.AppTheme
 import ui.AppWindowState
 import ui.layout.SplitterState
-import ui.layout.VerticalSplittableForTwoElements
 import ui.session.AddSessionModal
 import ui.session.SessionSelection
 import ui.session.SessionSelectionState
@@ -63,14 +60,7 @@ val emptyCell = Cell(
 @Composable
 @Preview
 fun App(appState: CoCoTerminalAppState) {
-
-    VerticalSplittableForTwoElements(Modifier.fillMaxSize(),
-        appState.splitterState,
-        onResize = {
-            appState.sessionSelectionState.expandedSize =
-                (appState.sessionSelectionState.expandedSize + it)
-                    .coerceAtLeast(appState.sessionSelectionState.expandedSizeMin)
-        }) {
+    Surface(modifier = Modifier.zIndex(2F), elevation = 2.dp) {
         SessionSelection(appState.sessions,
             appState.sessionSelectionState,
             onAddClick = {
@@ -85,9 +75,11 @@ fun App(appState: CoCoTerminalAppState) {
                     TODO()
                 }
             })
-        TerminalViews(appState)
-
     }
+    Surface(elevation = 1.dp, modifier = Modifier.zIndex(1F)) {
+        TerminalViews(appState)
+    }
+
 
 }
 
@@ -118,6 +110,7 @@ fun main() = singleWindowApplication(
                     writeConfigToFile(appConfig)
                     appState.sessions.add(it)
                 }) { appState.windowState = AppWindowState.NORMAL }
+
                 else -> App(appState)
             }
         }
