@@ -1,39 +1,45 @@
 package terminal
 
-class TerminalOutputProcessor(private val terminal: Terminal) {
+import org.slf4j.LoggerFactory
+import terminal.service.*
 
-    fun print(code: Int) {
+class TerminalOutputProcessor(
+    private val bufferService: IBufferService,
+    private val configService: IConfigService,
+    private val characterService: ICharacterService,
+    private val cursor: ICursorService
+) : ITerminalOutputProcessorService {
+    private val logger = LoggerFactory.getLogger(TerminalOutputProcessor::class.java)
+
+    override fun print(code: Int) {
         if (code == 0xFFFF) {
             return
         }
-        val activeBuffer = terminal.bufferService.getActiveBuffer()
-        with(activeBuffer) {
-            try {
-                lock.lock()
-                var lineAtCurrentCursor = getLine(terminal.scrollY + terminal.cursorY)
-                if (lineAtCurrentCursor == null) {
-                    lineAtCurrentCursor = Line(terminal.terminalConfig.columns)
-                    insertLine(terminal.scrollY + terminal.cursorY, lineAtCurrentCursor)
-                }
-                lineAtCurrentCursor.replaceCell(terminal.scrollX + terminal.cursorX, buildCell(code.toChar(), terminal))
-                terminal.cursorX++
-            } finally {
-                lock.unlock()
+        val activeBuffer = bufferService.activeBuffer
+        try {
+            activeBuffer.lock.lock()
+
+            val absoluteRowNumber = cursor.getAbsoluteRowNumber()
+
+            var lineAtCurrentCursor =
+                activeBuffer.getLine(absoluteRowNumber)
+
+            if (lineAtCurrentCursor == null) {
+                lineAtCurrentCursor = Line(configService.maxColumns, characterService.createEmptyCell())
+
+                activeBuffer.insertLine(
+                    absoluteRowNumber,
+                    lineAtCurrentCursor
+                )
             }
+            val absoluteColumnNumber = cursor.getAbsoluteColumnNumber()
+            lineAtCurrentCursor.replaceCell(absoluteColumnNumber, characterService.buildCell(code))
+            if (logger.isDebugEnabled) {
+                logger.debug("write {} to (line {},column {})", Char(code), absoluteRowNumber, absoluteColumnNumber)
+            }
+            cursor.forward(1)
+        } finally {
+            activeBuffer.lock.unlock()
         }
     }
-}
-
-fun buildCell(char: Char, terminal: Terminal): ICell {
-    return Cell(
-        char,
-        terminal.characterService.getCharBg(),
-        terminal.characterService.getCharFg(),
-        terminal.characterService.getCharBold(),
-        terminal.characterService.getCharItalic()
-    )
-}
-
-fun buildCells(char: Char, count: Int, terminal: Terminal): Array<ICell> {
-    return Array(count) { buildCell(char, terminal) }
 }

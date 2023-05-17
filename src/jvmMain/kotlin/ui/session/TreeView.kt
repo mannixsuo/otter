@@ -19,10 +19,6 @@ import utils.withoutWidthConstraints
 import java.util.*
 import java.util.stream.Collectors
 
-class SessionTreeViewState {
-    var selected: Session? by mutableStateOf(null)
-}
-
 @Composable
 fun SessionTreeView(
     sessions: List<SessionTreeViewNodeModel>,
@@ -56,7 +52,6 @@ fun SessionTreeItemView(
     model: SessionTreeViewNodeModel,
     sessionSelected: (s: Session) -> Unit,
     rightClickSession: (s: Session) -> Unit,
-    selected: Boolean = false,
     doubleClickSession: (s: Session) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -117,8 +112,8 @@ class SessionTreeViewModel(private val sessions: List<SessionTreeViewNodeModel> 
 }
 
 
-fun buildSessionTreeNodeFromSessionList(sessions: List<Session>): List<SessionTreeNode> {
-    val sessionTreeNodes = sessions.stream().map {
+fun buildSessionTreeNodeFromSessionList(sessionList: List<Session>): List<SessionTreeNode> {
+    val sessionTreeNodes = sessionList.stream().map {
         SessionTreeNode(it.name, it)
     }.collect(Collectors.toList())
 
@@ -180,7 +175,7 @@ class SessionTreeNode(
 
 class SessionTreeViewNodeModel(val session: SessionTreeNode, val level: Int) {
 
-    var children: List<SessionTreeViewNodeModel> by mutableStateOf(emptyList())
+    private var children: List<SessionTreeViewNodeModel> by mutableStateOf(emptyList())
 
     val canExpanded: Boolean = session.children.isNotEmpty()
 

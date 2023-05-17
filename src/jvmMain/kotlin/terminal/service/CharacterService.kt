@@ -1,50 +1,64 @@
 package terminal.service
 
+import androidx.compose.material.Colors
 import androidx.compose.ui.graphics.Color
-import ui.AppTheme
+import terminal.Cell
+import terminal.ICell
 
-class CharacterService {
-    private var nextCharFgColor = AppTheme.colors.material.primary
-    private var nextCharBgColor = AppTheme.colors.material.background
+class CharacterService(private val colors: Colors) : ICharacterService {
+
+    private var nextCharFgColor = colors.primary
+    private var nextCharBgColor = colors.background
     private var nextCharBold = false
     private var nextCharItalic = false
 
-    fun getCharBg(): Color {
-        return nextCharBgColor
-    }
-
-    fun getCharFg(): Color {
-        return nextCharFgColor
-    }
-
-    fun getCharBold(): Boolean {
-        return nextCharBold
-    }
-
-    fun getCharItalic(): Boolean {
-        return nextCharItalic
-    }
-
-    fun normal() {
-        nextCharFgColor = AppTheme.colors.material.primary
-        nextCharBgColor = AppTheme.colors.material.background
+    override fun normal() {
+        nextCharFgColor = colors.primary
+        nextCharBgColor = colors.background
         nextCharBold = false
         nextCharItalic = false
     }
 
-    fun bold() {
+    override fun bold() {
         nextCharBold = true
+    }
+
+    override fun italic() {
+        nextCharItalic = true
     }
 
     fun italicized() {
         nextCharItalic = true
     }
 
-    fun fgYellow() {
-        nextCharFgColor = AppTheme.colors.yellow
+    override fun fgYellow() {
+        nextCharFgColor = Color.Yellow
     }
 
     fun fgDefault() {
-        nextCharFgColor = AppTheme.colors.material.primary
+        nextCharFgColor = colors.primary
+    }
+
+
+    private fun buildCell(char: Char): ICell {
+        return Cell(
+            char,
+            nextCharBgColor,
+            nextCharFgColor,
+            nextCharBold,
+            nextCharItalic
+        )
+    }
+
+    override fun createEmptyCell(): ICell {
+        return buildCell(Char.MIN_VALUE)
+    }
+
+    override fun buildCell(code: Int): ICell {
+        return buildCell(Char(code))
+    }
+
+    override fun buildEmptyCells(count: Int): Array<ICell> {
+        return Array(count) { buildCell(Char.MIN_VALUE) }
     }
 }

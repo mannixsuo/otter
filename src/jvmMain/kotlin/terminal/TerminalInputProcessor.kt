@@ -1,11 +1,24 @@
 package terminal
 
 import parser.SingleCharacterFunProcessor
+import terminal.service.*
 
-class TerminalInputProcessor(private val terminal: Terminal) {
+class TerminalInputProcessor(
+    bufferService: IBufferService,
+    characterService: ICharacterService,
+    cursorService: ICursorService,
+    stateService: IStateService,
+    configService: IConfigService,
+    tableStopService: ITableStopService
+) : ITerminalInputProcessorService {
 
-    val csiProcessor = CSIProcessor(terminal)
-    val singleCharacterFunProcessor = SingleCharacterFunProcessor(terminal)
-    val escProcessor = EscProcessor(terminal)
+    override val csiProcessor =
+        CSIProcessor(bufferService, characterService, cursorService, stateService, configService)
+
+    override val singleCharacterFunProcessor = SingleCharacterFunProcessor(
+        tableStopService, cursorService,
+        bufferService, configService, characterService
+    )
+    override val escProcessor = EscProcessor(stateService)
 
 }

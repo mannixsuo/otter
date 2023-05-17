@@ -1,14 +1,13 @@
 package ui.terminal
 
 import terminal.Terminal
-import ui.ActiveTerminalScreen
 import ui.SingleSelection
 
 class Terminals {
 
     private val selection = SingleSelection()
 
-    val terminals: ArrayList<Terminal> = ArrayList()
+    val terminals: MutableList<Terminal> = mutableListOf()
 
     var active: Int = 0
 
@@ -21,7 +20,9 @@ class Terminals {
             newTerminal.stop()
             terminals.remove(newTerminal)
             if (newTerminal.isActive) {
-                terminals[0].activate()
+                if (terminals.isNotEmpty()) {
+                    terminals[0].activate()
+                }
             }
         }
         newTerminal.selection = selection

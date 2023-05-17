@@ -75,6 +75,7 @@ dependencies {
     implementation("ch.qos.logback:logback-core:1.4.3")
     implementation("org.slf4j:slf4j-api:2.0.3")
     implementation("com.jcraft:jsch:0.1.55")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
     // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
 //    implementation("com.fasterxml.jackson.core:jackson-databind:2.14.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0-RC")

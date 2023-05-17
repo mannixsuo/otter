@@ -1,36 +1,46 @@
 package terminal
 
+import androidx.compose.material.Colors
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.input.key.*
+import androidx.compose.ui.input.key.KeyEvent
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import parser.Parser
 import shell.Shell
-import terminal.service.BufferService
-import terminal.service.CharacterService
-import terminal.service.IBufferService
-import terminal.service.TableStopService
+import terminal.service.*
 import ui.SingleSelection
-import ui.scroll.ScrollState
+import kotlin.math.max
 
-@OptIn(ExperimentalComposeUiApi::class)
-class Terminal(val shell: Shell, val terminalConfig: TerminalConfig) {
-
-    var errorInfo: String? = null
-    val keyboard = Keyboard()
+class Terminal(
+    private val shell: Shell,
+    private val terminalConfig: TerminalConfig,
+    appState: AppState,
+    colors: Colors
+) {
     private val logger = LoggerFactory.getLogger(Terminal::class.java)
-    val bufferService: IBufferService = BufferService()
-    val terminalInputProcessor = TerminalInputProcessor(this)
-    val terminalOutputProcessor = TerminalOutputProcessor(this)
-    var title: String by mutableStateOf("Terminal")
-    val state = TerminalState()
+    private var errorInfo: String? = null
+    var version by mutableStateOf(0)
+    val state: IStateService = StateService()
+    val configService: IConfigService = ConfigService(terminalConfig.rows, terminalConfig.columns, "title")
+    private val characterService: ICharacterService = CharacterService(colors)
+    val bufferService: IBufferService = BufferService(characterService)
+    private val tableStopService: ITableStopService = TableStopService(terminalConfig.columns, terminalConfig.rows)
+    val cursorService: ICursorService = CursorService()
+    private val terminalOutputProcessor: ITerminalOutputProcessorService =
+        TerminalOutputProcessor(bufferService, configService, characterService, cursorService)
+    private val keyboardService: IKeyboardService = KeyboardService()
+    private val terminalInputProcessorService: ITerminalInputProcessorService =
+        TerminalInputProcessor(bufferService, characterService, cursorService, state, configService, tableStopService)
+    private val channelInputStreamReader = shell.getChannelInputStreamReader()
+    private val channelOutputStreamWriter = shell.getChannelOutputStreamWriter()
+    private val parser: Parser =
+        Parser(configService, appState.transitionTable, terminalInputProcessorService, terminalOutputProcessor)
 
-    val tableStopService = TableStopService(terminalConfig.columns, terminalConfig.rows)
-
+    val readBuf = CharArray(1024)
     var close: (() -> Unit) = fun() { stop() }
-    val scrollState by mutableStateOf(ScrollState())
 
     lateinit var selection: SingleSelection
     val isActive: Boolean
@@ -39,28 +49,6 @@ class Terminal(val shell: Shell, val terminalConfig: TerminalConfig) {
     fun activate() {
         selection.selected = this
     }
-
-    /**
-     * current cursor position x
-     */
-    var cursorX by mutableStateOf(0)
-
-    var scrollX by mutableStateOf(0)
-
-    /**
-     * current cursor position y
-     */
-    var cursorY by mutableStateOf(0)
-
-    var scrollY by mutableStateOf(0)
-
-
-    private val channelInputStreamReader = shell.getChannelInputStreamReader()
-    private val channelOutputStreamWriter = shell.getChannelOutputStreamWriter()
-    private val parser: Parser = Parser(this)
-
-    val characterService = CharacterService()
-
 
     fun start(): Int {
         try {
@@ -79,20 +67,8 @@ class Terminal(val shell: Shell, val terminalConfig: TerminalConfig) {
     }
 
     fun onKeyEvent(event: KeyEvent): Boolean {
-        if (event.type == KeyEventType.KeyDown) {
-            when (event.key) {
-                Key.ShiftLeft, Key.ShiftRight, Key.CtrlLeft, Key.CtrlRight, Key.AltLeft, Key.AltRight -> return true
-            }
-            val toInt = event.utf16CodePoint
-            val keyChar = keyboard.getKeyChar(event.key)
-            if (keyChar == null) {
-                channelOutputStreamWriter.write(toInt)
-            } else {
-                channelOutputStreamWriter.write(keyChar)
-            }
-            channelOutputStreamWriter.flush()
-            return true
-        }
+        keyboardService.onKeyEvent(event, channelOutputStreamWriter)
+        version = version++ % 10
         return true
     }
 
@@ -106,13 +82,14 @@ class Terminal(val shell: Shell, val terminalConfig: TerminalConfig) {
                     logger.debug(String(buf, 0, length))
                 }
                 parser.onCharArray(buf.copyOfRange(0, length))
+                version = version++ % 10
                 restrictCursor()
             }
         }.start()
     }
 
     private fun restrictCursor() {
-        scrollState.y = Math.max(bufferService.getActiveBuffer().lineCount() - terminalConfig.rows, 0)
+        cursorService.scrollY = max(bufferService.activeBuffer.lineCount() - terminalConfig.rows, 0)
     }
 
 }

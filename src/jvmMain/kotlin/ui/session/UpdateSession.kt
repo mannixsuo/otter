@@ -2,7 +2,10 @@ package ui.session
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
+import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
+import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -13,26 +16,16 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import config.Session
-import platform.grayBorder
 
 @Composable
 fun UpdateSession(session: Session) {
-    var name by mutableStateOf(session.name)
-    var host by mutableStateOf(session.host)
-    var port by mutableStateOf(session.port)
-    var user by mutableStateOf(session.user)
-    var password by mutableStateOf(session.password)
-
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
             verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(verticalArrangement = Arrangement.Center) {
-                SessionEditTextField("Name", name) { name = it }
-                SessionEditTextField("Host", host) { host = it }
-                SessionEditPortField("Port", port) { port = it }
-                SessionEditTextField("User", user) { user = it }
-                SessionEditPasswordField("Password", password) { password = it }
+            when (session.type) {
+                "SHELL" -> UpdateShellView(session)
+                "SSH" -> UpdateSshView(session)
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -50,6 +43,38 @@ fun UpdateSession(session: Session) {
 }
 
 @Composable
+fun UpdateSshView(session: Session) {
+    session.ssh?.let { ssh ->
+        var name by mutableStateOf(session.name)
+        var host by mutableStateOf(ssh.host)
+        var port by mutableStateOf(ssh.port)
+        var user by mutableStateOf(ssh.user)
+        var password by mutableStateOf(ssh.password)
+        Column(verticalArrangement = Arrangement.Center) {
+            SessionEditTextField("Name", name) { name = it }
+            SessionEditTextField("Host", host) { host = it }
+            SessionEditPortField("Port", port) { port = it }
+            SessionEditTextField("User", user) { user = it }
+            SessionEditPasswordField("Password", password) { password = it }
+        }
+    }
+}
+
+@Composable
+fun UpdateShellView(session: Session) {
+    session.shell?.let { shell ->
+        var name by mutableStateOf(session.name)
+        var command by mutableStateOf(shell.command)
+        Column(verticalArrangement = Arrangement.Center) {
+            SessionEditTextField("Name", name) { name = it }
+
+            SessionEditTextField("Command", command) { command = it }
+        }
+    }
+
+}
+
+@Composable
 fun SessionEditTextField(title: String, value: String, onValueChange: (String) -> Unit) =
     OutlinedTextField(modifier = Modifier.padding(PaddingValues(0.dp, 4.dp)),
         singleLine = true,
@@ -59,7 +84,6 @@ fun SessionEditTextField(title: String, value: String, onValueChange: (String) -
 
 @Composable
 fun SessionEditPortField(title: String, value: Int?, onValueChange: (Int) -> Unit) =
-
     OutlinedTextField(modifier = Modifier.padding(PaddingValues(0.dp, 4.dp)),
         singleLine = true,
         label = { Text(title) },

@@ -1,20 +1,26 @@
 package terminal
 
-import emptyCell
+import terminal.service.*
 import kotlin.math.max
 
-class CSIProcessor(private val terminal: Terminal) {
+class CSIProcessor(
+    private val bufferService: IBufferService,
+    private val characterService: ICharacterService,
+    private val cursorService: ICursorService,
+    private val stateService: IStateService,
+    private val configService: IConfigService
+) {
 
     /**
      * CSI Ps @
      * Insert Ps (Blank) Character(s) (default = 1) (ICH).
      */
     fun insertChars(params: Array<Int>) {
-        val activeBuffer = terminal.bufferService.getActiveBuffer()
+        val activeBuffer = bufferService.activeBuffer
         with(activeBuffer) {
-            val cells = buildCells(0.toChar(), params.elementAtOrElse(0) { 1 }, terminal)
-            getLine(terminal.scrollY + terminal.cursorY)?.insertCells(
-                terminal.cursorX + terminal.scrollX, cells
+            val cells = characterService.buildEmptyCells(params.elementAtOrElse(0) { 1 })
+            getLine(cursorService.getAbsoluteRowNumber())?.insertCells(
+                cursorService.getAbsoluteColumnNumber(), cells
             )
         }
     }
@@ -24,10 +30,10 @@ class CSIProcessor(private val terminal: Terminal) {
      * Shift left Ps columns(s) (default = 1) (SL), ECMA-48.
      */
     fun shiftLeft(params: Array<Int>) {
-        val activeBuffer = terminal.bufferService.getActiveBuffer()
+        val activeBuffer = bufferService.activeBuffer
         val shiftCount = params.elementAtOrElse(0) { 1 }
         with(activeBuffer) {
-            getLine(terminal.scrollY + terminal.cursorY)?.getCells()?.let {
+            getLine(cursorService.getAbsoluteRowNumber())?.getCells()?.let {
                 for (index in 0 until it.size - shiftCount) {
                     it[index] = it[index + 1]
                 }
@@ -40,9 +46,9 @@ class CSIProcessor(private val terminal: Terminal) {
      * Cursor Up Ps Times (default = 1) (CUU).
      */
     fun cursorUp(params: Array<Int>) {
-        terminal.cursorY -= params.elementAtOrElse(0) { 1 }
-        if (terminal.cursorY < 0) {
-            terminal.cursorY = 0
+        cursorService.up(params.elementAtOrElse(0) { 1 })
+        if (cursorService.cursorY < 0) {
+            cursorService.cursorY = 0
         }
     }
 
@@ -51,16 +57,16 @@ class CSIProcessor(private val terminal: Terminal) {
      * Shift right Ps columns(s) (default = 1) (SR), ECMA-48.
      */
     fun cursorRight(params: Array<Int>) {
-        val activeBuffer = terminal.bufferService.getActiveBuffer()
+        val activeBuffer = bufferService.activeBuffer
         val shiftCount = params.elementAtOrElse(0) { 1 }
 
         with(activeBuffer) {
-            getLine(terminal.scrollY + terminal.cursorY)?.getCells()?.let {
+            getLine(cursorService.getAbsoluteRowNumber())?.getCells()?.let {
                 for (index in it.size - 1 downTo shiftCount) {
                     it[index] = it[index - shiftCount]
                 }
                 for (index in 0 until shiftCount) {
-                    it[index] = emptyCell
+                    it[index] = characterService.createEmptyCell()
                 }
             }
         }
@@ -71,7 +77,7 @@ class CSIProcessor(private val terminal: Terminal) {
      * Cursor Down Ps Times (default = 1) (CUD).
      */
     fun cursorDown(params: Array<Int>) {
-        terminal.cursorY += params.elementAtOrElse(0) { 1 }
+        cursorService.down(params.elementAtOrElse(0) { 1 })
     }
 
     /**
@@ -84,7 +90,7 @@ class CSIProcessor(private val terminal: Terminal) {
      */
     fun cursorForward(params: Array<Int>) {
         val step = max(1, params[0])
-        terminal.cursorX += step
+        cursorService.forward(step)
     }
 
     /**
@@ -93,7 +99,7 @@ class CSIProcessor(private val terminal: Terminal) {
      */
     fun cursorBackward(params: Array<Int>) {
         val step = max(1, params[0])
-        terminal.cursorX -= step
+        cursorService.back(step)
     }
 
     /**
@@ -102,7 +108,7 @@ class CSIProcessor(private val terminal: Terminal) {
      */
     fun cursorNextLine(params: Array<Int>) {
         val step = max(1, params[0])
-        terminal.cursorY += step
+        cursorService.down(step)
     }
 
     /**
@@ -111,7 +117,7 @@ class CSIProcessor(private val terminal: Terminal) {
      */
     fun cursorPrecedingLine(params: Array<Int>) {
         val step = max(1, params[0])
-        terminal.cursorY -= step
+        cursorService.up(step)
     }
 
     /**
@@ -121,7 +127,7 @@ class CSIProcessor(private val terminal: Terminal) {
      */
     fun cursorCharacterAbsolute(params: Array<Int>) {
         val step = max(1, params[0])
-        terminal.cursorX = step - 1
+        cursorService.cursorX = step - 1
     }
 
     /**
@@ -129,8 +135,8 @@ class CSIProcessor(private val terminal: Terminal) {
      * Cursor Position [row;column] (default = [1,1]) (CUP).
      */
     fun cursorPosition(params: Array<Int>) {
-        terminal.cursorY = max(1, params.elementAtOrElse(0) { 0 })
-        terminal.cursorX = max(1, params.elementAtOrElse(1) { 0 })
+        cursorService.cursorY = max(1, params.elementAtOrElse(0) { 0 })
+        cursorService.cursorX = max(1, params.elementAtOrElse(1) { 0 })
     }
 
     /**
@@ -149,20 +155,25 @@ class CSIProcessor(private val terminal: Terminal) {
      * Ps = 3  ⇒  Erase Saved Lines, xterm.
      */
     fun eraseInDisplay(params: Array<Int>) {
-        val activeBuffer = terminal.bufferService.getActiveBuffer()
+        val activeBuffer = bufferService.activeBuffer
         with(activeBuffer) {
             when (params.elementAtOrElse(0) { 0 }) {
                 0 -> {
                     this.deleteLines(
                         IntRange(
-                            terminal.scrollY + terminal.cursorY + 1,
-                            terminal.scrollY + (terminal.terminalConfig.rows - terminal.cursorY)
+                            cursorService.getAbsoluteRowNumber() + 1,
+                            cursorService.scrollY + (configService.maxRows - cursorService.cursorY)
                         )
                     )
                 }
 
                 1 -> {
-                    this.deleteLines(IntRange(terminal.scrollY, terminal.scrollY + terminal.cursorY - 1))
+                    this.deleteLines(
+                        IntRange(
+                            cursorService.scrollY,
+                            cursorService.getAbsoluteRowNumber() - 1
+                        )
+                    )
                 }
 
                 2, 3 -> {
@@ -191,25 +202,25 @@ class CSIProcessor(private val terminal: Terminal) {
      *  Ps = 2  ⇒  Erase All.
      */
     fun eraseInLine(params: Array<Int>) {
-        val activeBuffer = terminal.bufferService.getActiveBuffer()
+        val activeBuffer = bufferService.activeBuffer
         with(activeBuffer) {
             when (params.elementAtOrElse(0) { 0 }) {
                 0 -> {
-                    getLine(terminal.scrollY + terminal.cursorY)?.let {
-                        it.deleteCells(IntRange(terminal.scrollX + terminal.cursorX, it.length()))
+                    getLine(cursorService.getAbsoluteRowNumber())?.let {
+                        it.deleteCells(IntRange(cursorService.getAbsoluteColumnNumber(), it.length()))
                     }
                 }
 
                 1 -> {
-                    getLine(terminal.scrollY + terminal.cursorY)?.deleteCells(
+                    getLine(cursorService.getAbsoluteRowNumber())?.deleteCells(
                         IntRange(
-                            0, terminal.scrollX + terminal.cursorX + 1
+                            0, cursorService.getAbsoluteRowNumber() + 1
                         )
                     )
                 }
 
                 2 -> {
-                    getLine(terminal.scrollY + terminal.cursorY)?.let {
+                    getLine(cursorService.getAbsoluteRowNumber())?.let {
                         it.deleteCells(IntRange(0, it.length()))
                     }
                 }
@@ -236,7 +247,7 @@ class CSIProcessor(private val terminal: Terminal) {
      * Insert Ps Line(s) (default = 1) (IL).
      */
     fun insertLines(params: Array<Int>) {
-        val activeBuffer = terminal.bufferService.getActiveBuffer()
+        val activeBuffer = bufferService.activeBuffer
         val param = params.elementAtOrElse(0) { 1 }
         with(activeBuffer) {
             TODO()
@@ -267,8 +278,8 @@ class CSIProcessor(private val terminal: Terminal) {
     fun decPrivateModeSet(params: Array<Int>) {
         for (param in params) {
             when (param) {
-                1 -> terminal.state.applicationCursorKeys()
-                25 -> terminal.state.showCursor()
+                1 -> stateService.applicationCursorKeys()
+                25 -> stateService.showCursor()
 
             }
         }
@@ -281,8 +292,8 @@ class CSIProcessor(private val terminal: Terminal) {
     fun decPrivateModeReSet(params: Array<Int>) {
         for (param in params) {
             when (param) {
-                1 -> terminal.state.normalCursorKeys()
-                25 -> terminal.state.hideCursor()
+                1 -> stateService.normalCursorKeys()
+                25 -> stateService.hideCursor()
 
             }
         }
@@ -294,11 +305,12 @@ class CSIProcessor(private val terminal: Terminal) {
     fun characterAttributes(params: Array<Int>) {
         for (param in params) {
             when (param) {
-                0 -> terminal.characterService.normal()
-                1 -> terminal.characterService.bold()
-                3 -> terminal.characterService.italicized()
-                33, 93 -> terminal.characterService.fgYellow()
+                0 -> characterService.normal()
+                1 -> characterService.bold()
+                3 -> characterService.italic()
+                33, 93 -> characterService.fgYellow()
             }
         }
     }
+
 }

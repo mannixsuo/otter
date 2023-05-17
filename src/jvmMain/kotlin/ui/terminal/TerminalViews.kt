@@ -1,19 +1,19 @@
 package ui.terminal
 
 import CoCoTerminalAppState
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import ui.AppTheme
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun TerminalViews(model: CoCoTerminalAppState) {
 
-    Box {
+    Box(modifier = Modifier.padding(2.dp)) {
         Column {
             TerminalTablesView(model.terminals)
             Box(
@@ -25,7 +25,7 @@ fun TerminalViews(model: CoCoTerminalAppState) {
                 if (terminal == null) {
                     Text("Open")
                 } else {
-                    TerminalView(terminal)
+                    TerminalView(terminal.version,terminal.configService, terminal.bufferService, terminal.cursorService)
                 }
 
             }

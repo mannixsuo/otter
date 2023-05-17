@@ -2,9 +2,15 @@ package parser
 
 import org.slf4j.LoggerFactory
 import terminal.Line
-import terminal.Terminal
+import terminal.service.*
 
-class SingleCharacterFunProcessor(private val terminal: Terminal) {
+class SingleCharacterFunProcessor(
+    private val tableStopService: ITableStopService,
+    private val cursorService: ICursorService,
+    private val bufferService: IBufferService,
+    private val configService: IConfigService,
+    private val characterService: ICharacterService
+) {
     private val logger = LoggerFactory.getLogger(SingleCharacterFunProcessor::class.java)
     private val commandExecutorMap = HashMap<Int, SingleCharacterFun>()
 
@@ -53,25 +59,22 @@ class SingleCharacterFunProcessor(private val terminal: Terminal) {
      * 8 elements a tab
      */
     private fun ht() {
-        val nextHorizontalTableStop = terminal.tableStopService.getNextHorizontalTableStop(terminal.cursorX)
-        terminal.cursorX = nextHorizontalTableStop
+        val nextHorizontalTableStop = tableStopService.getNextHorizontalTableStop(cursorService.cursorX)
+        cursorService.cursorX = nextHorizontalTableStop
     }
 
     /**
      * Move the cursor to the left one character position, unless it is at the left margin, in which case no action occurs.
      */
     private fun backSpace() {
-        terminal.cursorX -= 1
-        if (terminal.cursorX < 0) {
-            terminal.cursorX = 0
-        }
+        cursorService.back(1)
     }
 
     /**
      * Sound bell tone from keyboard.
      */
     private fun bell() {
-
+        doNothing()
     }
 
 
@@ -82,6 +85,7 @@ class SingleCharacterFunProcessor(private val terminal: Terminal) {
         TODO()
     }
 
+
     private fun doNothing() {}
 
     /**
@@ -89,8 +93,8 @@ class SingleCharacterFunProcessor(private val terminal: Terminal) {
      *
      */
     private fun carriageReturn() {
-        terminal.cursorX = 0
-        terminal.scrollX = 0
+        cursorService.cursorX = 0
+        cursorService.scrollX = 0
     }
 
     /**
@@ -98,13 +102,13 @@ class SingleCharacterFunProcessor(private val terminal: Terminal) {
      * make a new line at current line
      */
     private fun newLine() {
-        terminal.cursorY += 1
-        if (terminal.cursorY >= terminal.terminalConfig.rows) {
-            terminal.scrollY++
-            terminal.cursorY = terminal.terminalConfig.rows - 1
-        }
-        terminal.bufferService.getActiveBuffer()
-            .insertLine(terminal.scrollY + terminal.cursorY, Line(terminal.terminalConfig.columns))
+        cursorService.down(1)
+        bufferService
+            .activeBuffer
+            .insertLine(
+                cursorService.getAbsoluteRowNumber(),
+                Line(configService.maxColumns, characterService.createEmptyCell())
+            )
     }
 }
 

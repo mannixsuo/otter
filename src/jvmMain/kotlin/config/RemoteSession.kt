@@ -10,7 +10,41 @@ private val json = Json { prettyPrint }
 
 @Serializable
 data class Session(
-    val name: String, val host: String, val port: Int, val user: String, val password: String
+    var name: String,
+    var group: String,
+    var type: String,
+    var description: String?,
+    var shell: Shell?,
+    var ssh: Ssh?,
+)
+
+@Serializable
+data class Shell(
+    var command: String
+)
+
+@Serializable
+data class Ssh(
+    var host: String,
+    var port: Int,
+    var termType: String,
+    val user: String,
+    val password: String
+)
+
+@Serializable
+data class RemoteSession(
+    val name: String,
+    val host: String,
+    val port: Int,
+    val user: String,
+    val password: String
+)
+
+@Serializable
+data class LocalSession(
+    val name: String,
+    val commands: List<String>
 )
 
 @Serializable
@@ -34,7 +68,10 @@ const val DEFAULT_CONFIG_FILE_PATH = "/.otter/settings.json"
 data class Ui(val columns: Int = 120, val rows: Int = 30, val theme: Theme)
 
 @Serializable
-data class TerminalConfig(val sessions: MutableList<Session>, val ui: Ui)
+data class TerminalConfig(
+    val sessionList: MutableList<Session>,
+    val ui: Ui
+)
 
 
 fun readConfigFromFile(): TerminalConfig {

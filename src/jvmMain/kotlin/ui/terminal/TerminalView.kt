@@ -6,14 +6,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import terminal.ILine
-import terminal.Terminal
+import terminal.service.IBufferService
+import terminal.service.IConfigService
+import terminal.service.ICursorService
 import ui.font.Fonts.jetbrainsMono
 
 private suspend fun AwaitPointerEventScope.awaitScrollEvent(): PointerEvent {
@@ -24,54 +26,64 @@ private suspend fun AwaitPointerEventScope.awaitScrollEvent(): PointerEvent {
     return event
 }
 
+
 @Composable
-fun TerminalView(terminal: Terminal) {
+fun TerminalView(
+    version: Int,
+    config: IConfigService,
+    bufferService: IBufferService,
+    cursorService: ICursorService
+) {
+    val state: MutableState<List<ILine>?> = remember { mutableStateOf(null, neverEqualPolicy()) }
 
     SelectionContainer() {
         Column(
             modifier = Modifier.fillMaxSize()
-                .pointerInput(terminal) {
+                .pointerInput(Unit) {
                     awaitPointerEventScope {
                         while (true) {
                             val event = awaitScrollEvent()
                             val y = event.changes[0].scrollDelta.y
                             if (y.compareTo(0) != 0) {
-                                if (terminal.bufferService.getActiveBuffer()
-                                        .lineCount() < terminal.terminalConfig.rows
+                                if (bufferService.activeBuffer
+                                        .lineCount() < config.maxRows
                                 ) {
                                     continue
                                 }
-                                terminal.scrollState.y += y.toInt()
-                                if (terminal.scrollState.y < 0) {
-                                    terminal.scrollState.y = 0
+                                cursorService.down(y.toInt())
+                                if (cursorService.scrollY < 0) {
+                                    cursorService.scrollY = 0
                                 }
-                                if (terminal.bufferService.getActiveBuffer()
-                                        .lineCount() - terminal.scrollState.y < terminal.terminalConfig.rows
+                                if (bufferService.activeBuffer
+                                        .lineCount() - cursorService.scrollY < config.maxRows
                                 ) {
-                                    terminal.scrollState.y = terminal.bufferService.getActiveBuffer()
-                                        .lineCount() - terminal.terminalConfig.rows
+                                    cursorService.scrollY = bufferService.activeBuffer.lineCount() - config.maxRows
+
                                 }
                             }
                         }
                     }
                 },
         ) {
-            with(terminal.bufferService.getActiveBuffer()) {
-                val lines = getLines(
+            with(bufferService.activeBuffer) {
+                state.value = getLines(
                     IntRange(
-                        terminal.scrollState.y,
-                        terminal.scrollState.y + terminal.terminalConfig.rows
+                        cursorService.scrollY,
+                        cursorService.getAbsoluteRowNumber() + 1
                     )
                 )
-                for (index in lines.indices) {
-                    Row {
-                        Line(
-                            lines[index],
-                            terminal.scrollState.y + index == terminal.scrollY + terminal.cursorY,
-                            terminal.cursorX
-                        )
+                state.value?.let {
+                    for (index in it.indices) {
+                        Row {
+                            Line(
+                                it[index],
+                                cursorService.scrollY + index == cursorService.getAbsoluteRowNumber(),
+                                cursorService.scrollX
+                            )
+                        }
                     }
                 }
+
             }
         }
     }

@@ -16,81 +16,51 @@ import ui.AppTheme
 
 @Composable
 fun SessionSelectionStatusView(selectedSession: Session?) = Surface {
-
-    var name = ""
-    var host = ""
-    var port = ""
-    var user = ""
-
-    selectedSession?.let { session ->
-        session.name.let {
-            name = it
-        }
-        session.host.let {
-            host = it
-        }
-        session.port.let {
-            port = it.toString()
-        }
-        session.user.let {
-            user = it
+    selectedSession?.let {
+        when (selectedSession.type) {
+            "SHELL" -> ShellStatusView(selectedSession)
+            "SSH" -> SshStatusView(selectedSession)
         }
     }
+}
 
+@Composable
+fun ShellStatusView(session: Session) {
     Column(
         Modifier.fillMaxWidth()
             .border(BorderStroke(Dp.Hairline, AppTheme.colors.backgroundLight), RectangleShape)
     ) {
+        session.shell?.let {
+            RowText("Name", session.name)
+            RowText("Command", it.command)
+        }
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(BorderStroke(Dp.Hairline, AppTheme.colors.backgroundLight), RectangleShape),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start
-        ) {
-            Text(
-                text = "Name",
-                modifier = Modifier.width(50.dp)
-                    .border(BorderStroke(Dp.Hairline, AppTheme.colors.backgroundLight), RectangleShape)
-            )
-            Text(text = name)
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(BorderStroke(Dp.Hairline, AppTheme.colors.backgroundLight), RectangleShape),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start
-        ) {
-            Text(
-                "Host", modifier = Modifier.width(50.dp)
-                    .border(BorderStroke(Dp.Hairline, AppTheme.colors.backgroundLight), RectangleShape)
-            )
-            Text(host)
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(BorderStroke(Dp.Hairline, AppTheme.colors.backgroundLight), RectangleShape),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start
-        ) {
-            Text(
-                "Port", modifier = Modifier.width(50.dp)
-                    .border(BorderStroke(Dp.Hairline, AppTheme.colors.backgroundLight), RectangleShape)
-            )
-            Text(port)
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(BorderStroke(Dp.Hairline, AppTheme.colors.backgroundLight), RectangleShape),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start
-        ) {
-            Text("User", modifier = Modifier.width(50.dp))
-            Text(user)
-        }
     }
+}
+
+@Composable
+fun SshStatusView(session: Session) {
+    Column(
+        Modifier.fillMaxWidth()
+            .border(BorderStroke(Dp.Hairline, AppTheme.colors.backgroundLight), RectangleShape)
+    ) {
+        session.ssh?.let {
+            RowText("Name", session.name)
+            RowText("Host", it.host)
+        }
+
+    }
+}
+
+
+@Composable
+fun RowText(title: String, value: String) = Row(
+    modifier = Modifier
+        .fillMaxWidth()
+        .border(BorderStroke(Dp.Hairline, AppTheme.colors.backgroundLight), RectangleShape),
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.Start
+) {
+    Text(title, modifier = Modifier.width(50.dp))
+    Text(value)
 }

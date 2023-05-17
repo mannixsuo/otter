@@ -7,7 +7,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
-import emptyCell
+import kotlin.math.max
 
 /**
  * A line represent one line in window
@@ -25,7 +25,7 @@ interface ILine {
     /**
      * get all cells in this line
      */
-    fun getCells(): Array<ICell>
+    fun getCells(): MutableList<ICell>
 
     /**
      * append cell at last
@@ -50,6 +50,8 @@ interface ILine {
      * replace a cell
      */
     fun replaceCell(index: Int, replacement: ICell)
+
+    fun appendOrReplaceCell(index: Int, replacement: ICell)
 
     /**
      * replace cell by range
@@ -81,14 +83,15 @@ interface ILine {
     fun length(): Int
 
     fun toAnnotatedString(cursorOnThisLine: Boolean, cursorX: Int, colors: Colors): AnnotatedString
+
 }
 
-class Line(private val maxLength: Int) : ILine {
+class Line(private val maxLength: Int, private val emptyCell: ICell) : ILine {
 
     // 0 no elements , 1 has a elements eg.
     private var _length = 0
 
-    private val _cells = Array<ICell>(maxLength) { emptyCell }
+    private val _cells: MutableList<ICell> = mutableListOf()
 
     override fun getCell(index: Int): ICell {
         return if (index < 0 || index > _length) {
@@ -98,7 +101,7 @@ class Line(private val maxLength: Int) : ILine {
         }
     }
 
-    override fun getCells(): Array<ICell> {
+    override fun getCells(): MutableList<ICell> {
         return _cells
     }
 
@@ -130,8 +133,22 @@ class Line(private val maxLength: Int) : ILine {
     }
 
     override fun replaceCell(index: Int, replacement: ICell) {
+        if (index >= _length) {
+            for (i in _length .. index) {
+                _cells.add(emptyCell)
+            }
+        }
         _cells[index] = replacement
-        _length = Math.max(index + 1, _length)
+        _length = max(index + 1, _length)
+    }
+
+    override fun appendOrReplaceCell(index: Int, replacement: ICell) {
+        if (index > _length) {
+            for (i in _length until index) {
+                _cells.add(emptyCell)
+            }
+        }
+        _cells[index] = replacement
     }
 
     override fun replaceCells(range: IntRange, replacement: ICell) {

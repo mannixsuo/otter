@@ -3,10 +3,7 @@ package ui.terminal
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -22,15 +19,24 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun TerminalTablesView(model: Terminals) = Row(Modifier.horizontalScroll(rememberScrollState())) {
-    for (terminal in model.terminals) {
-        TerminalTableView(
-            terminal.title,
-            terminal.isActive,
-            fun() { terminal.activate() },
-            terminal.close
-        )
+    if (model.terminals.isEmpty()) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Text(
+                modifier = Modifier.align(Alignment.Center),
+                text = "No Open Terminal",
+                fontSize = MaterialTheme.typography.h2.fontSize
+            )
+        }
+    } else {
+        for (terminal in model.terminals) {
+            TerminalTableView(
+                terminal.configService.title,
+                terminal.isActive,
+                fun() { terminal.activate() },
+                terminal.close
+            )
+        }
     }
-
 }
 
 @Composable

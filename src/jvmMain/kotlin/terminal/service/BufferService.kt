@@ -3,30 +3,12 @@ package terminal.service
 import terminal.ILineBuffer
 import terminal.LineBuffer
 
-/**
- * save all line in terminal
- */
-interface IBufferService {
 
-    fun getActiveBuffer(): ILineBuffer
+class BufferService(private val characterService: ICharacterService) : IBufferService {
 
-    fun switchToAlternativeBuffer()
-
-    fun switchToMainBuffer()
-
-    fun doesActiveBufferIsMainBuffer(): Boolean
-
-}
-
-class BufferService : IBufferService {
-
-    private val mainBuffer = LineBuffer()
-    private val alternativeBuffer = LineBuffer()
-    private var activeBuffer = mainBuffer
-
-    override fun getActiveBuffer(): ILineBuffer {
-        return activeBuffer
-    }
+    private val mainBuffer: ILineBuffer = LineBuffer(characterService)
+    private val alternativeBuffer: ILineBuffer = LineBuffer(characterService)
+    override var activeBuffer = mainBuffer
 
     override fun switchToAlternativeBuffer() {
         this.activeBuffer = alternativeBuffer

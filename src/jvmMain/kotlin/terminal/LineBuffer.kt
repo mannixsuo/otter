@@ -1,65 +1,16 @@
 package terminal
 
+import terminal.service.ICharacterService
 import java.util.*
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 
-/**
- * container of lines reads from a terminal
- */
-interface ILineBuffer {
 
-    val lock: Lock
-
-    /**
-     * get line at index of the buffer
-     */
-    fun getLine(index: Int): ILine?
-
-    /**
-     * get lines that index in range
-     */
-    fun getLines(range: IntRange): List<ILine>
-
-    fun getAllLines(): List<ILine>
-
-    /**
-     * append line to the buffer
-     */
-    fun appendLine(line: ILine)
-
-    /**
-     * insert line at index
-     */
-    fun insertLine(index: Int, line: ILine)
-
-    /**
-     * delete line at index
-     *
-     * line behind the index will move up
-     */
-    fun deleteLine(index: Int)
-
-
-    /**
-     * delete lines in range
-     *
-     * line behind the index will move up
-     */
-    fun deleteLines(range: IntRange)
-
-
-    fun lineCount(): Int
-
-}
-
-
-class LineBuffer : ILineBuffer {
+class LineBuffer(private val characterService: ICharacterService) : ILineBuffer {
 
     override val lock: Lock = ReentrantLock()
 
-    private val _buffer = LinkedList<ILine>()
-
+    private val _buffer: MutableList<ILine> = mutableListOf()
 
     override fun getLine(index: Int): ILine? {
         try {
@@ -111,7 +62,7 @@ class LineBuffer : ILineBuffer {
             lock.lock()
             if (index >= _buffer.size) {
                 for (i in 0..index - _buffer.size) {
-                    _buffer.add(Line(line.maxLength()))
+                    _buffer.add(Line(line.maxLength(), characterService.createEmptyCell()))
                 }
             }
             _buffer[index] = line

@@ -1,9 +1,9 @@
 package parser
 
 import org.slf4j.LoggerFactory
-import terminal.Terminal
+import terminal.service.IConfigService
 
-class OSCHandler(private val terminal: Terminal) {
+class OSCHandler(private val configService: IConfigService) {
 
     private val logger = LoggerFactory.getLogger(OSCHandler::class.java)
 
@@ -23,9 +23,6 @@ class OSCHandler(private val terminal: Terminal) {
     }
 
     private fun handleOscCommand(buffer: StringBuffer) {
-        if (logger.isDebugEnabled) {
-            logger.debug("osc buffer {}", buffer)
-        }
         when (buffer[0]) {
             '0' -> changeIconNameAndWindowTitle(buffer)
         }
@@ -33,6 +30,6 @@ class OSCHandler(private val terminal: Terminal) {
     }
 
     private fun changeIconNameAndWindowTitle(buffer: StringBuffer) {
-        terminal.title = buffer.substring(buffer.indexOf(';') + 1)
+        configService.title = buffer.substring(buffer.indexOf(';') + 1)
     }
 }

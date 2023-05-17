@@ -1,7 +1,7 @@
 package parser
 
 import org.slf4j.LoggerFactory
-import terminal.TerminalInputProcessor
+import terminal.CSIProcessor
 import java.util.*
 
 // Type  Size(bits)
@@ -33,8 +33,7 @@ fun generateKey(finalCharCode: Int, prefix: Char?, intermediate: Char?): Int {
     return (if (prefix == null) 0 else prefix.code shl 14) or (if (intermediate == null) 0 else intermediate.code shl 8) or (finalCharCode)
 }
 
-
-class CsiHandler(private val terminalInputProcessor: TerminalInputProcessor) {
+class CsiHandler(private val csiProcessor: CSIProcessor) {
     private val logger = LoggerFactory.getLogger(CsiHandler::class.java)
 
     fun csiDispatch(collect: Stack<Char>, params: Params, finalCharCode: Int) {
@@ -63,7 +62,7 @@ class CsiHandler(private val terminalInputProcessor: TerminalInputProcessor) {
 
     init {
         with(commandExecutorMap) {
-            with(terminalInputProcessor.csiProcessor){
+            with(csiProcessor) {
                 put(CsiCommand('@', null, null).key()) { params -> insertChars(params) }
                 put(CsiCommand('@', null, ' ').key()) { params -> shiftLeft(params) }
                 put(CsiCommand('A', null, null).key()) { params -> cursorUp(params) }
@@ -91,5 +90,6 @@ class CsiHandler(private val terminalInputProcessor: TerminalInputProcessor) {
         }
     }
 }
+
 
 typealias CsiHandlerFun = (params: Array<Int>) -> Unit

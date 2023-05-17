@@ -15,8 +15,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.rememberDialogState
+import config.RemoteSession
 import config.Session
-import platform.redBorder
 import ui.ResizablePanel
 import ui.icon.AppIcon
 import ui.layout.SplitterState
@@ -31,7 +31,7 @@ class SessionSelectionState {
 
 @Composable
 fun SessionSelection(
-    sessions: List<Session>,
+    sessionList: List<Session>,
     sessionSelectionState: SessionSelectionState,
     onAddClick: () -> Unit,
     onSessionDoubleClick: (s: Session) -> Unit
@@ -62,7 +62,7 @@ fun SessionSelection(
                 mutableStateOf(
                     SessionTreeViewModel(
                         buildSessionTreeViewNodeModelFromSessionTreeNode(
-                            buildSessionTreeNodeFromSessionList(sessions)
+                            buildSessionTreeNodeFromSessionList(sessionList)
                         )
                     )
                 )
