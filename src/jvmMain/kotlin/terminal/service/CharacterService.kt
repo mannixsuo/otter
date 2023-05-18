@@ -40,7 +40,7 @@ class CharacterService(private val colors: Colors) : ICharacterService {
     }
 
 
-    private fun buildCell(char: Char): ICell {
+    override fun buildCell(char: Char): ICell {
         return Cell(
             char,
             nextCharBgColor,
@@ -54,9 +54,6 @@ class CharacterService(private val colors: Colors) : ICharacterService {
         return buildCell(Char.MIN_VALUE)
     }
 
-    override fun buildCell(code: Int): ICell {
-        return buildCell(Char(code))
-    }
 
     override fun buildEmptyCells(count: Int): Array<ICell> {
         return Array(count) { buildCell(Char.MIN_VALUE) }

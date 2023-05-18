@@ -79,6 +79,9 @@ fun App(appState: CoCoTerminalAppState) {
                             val localShell: Shell = LocalPty(
                                 PtyProcessBuilder(arrayOf(it.command))
                                     .setInitialColumns(terminalConfig.columns)
+//                                    .setConsole(true)
+//                                    .setCygwin(true)
+                                    .setUseWinConPty(true)
                                     .setInitialRows(terminalConfig.rows).start()
                             )
                             val terminal = Terminal(localShell, terminalConfig, applicationState, colors)

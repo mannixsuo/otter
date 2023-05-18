@@ -19,6 +19,10 @@ class LocalPty(val ptyProcess: PtyProcess) : Shell {
         return ptyInputStreamReader
     }
 
+    override fun getChannelInputStream(): InputStream {
+        return ptyInputStream
+    }
+
     override fun getChannelOutputStreamWriter(): OutputStreamWriter {
         return ptyOutPutStreamWriter
     }

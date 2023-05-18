@@ -7,6 +7,7 @@ import parser.Parser
 import shell.Shell
 import terminal.service.*
 import ui.SingleSelection
+import java.nio.charset.Charset
 import kotlin.math.max
 
 class Terminal(
@@ -29,12 +30,12 @@ class Terminal(
     private val keyboardService: IKeyboardService = KeyboardService()
     private val terminalInputProcessorService: ITerminalInputProcessorService =
         TerminalInputProcessor(bufferService, characterService, cursorService, state, configService, tableStopService)
-    private val channelInputStreamReader = shell.getChannelInputStreamReader()
+    private val channelInputStreamReader = shell.getChannelInputStream()
     private val channelOutputStreamWriter = shell.getChannelOutputStreamWriter()
     private val parser: Parser =
         Parser(configService, appState.transitionTable, terminalInputProcessorService, terminalOutputProcessor)
 
-    private val readBuf = CharArray(1024)
+    private val readBuf = ByteArray(1024)
     var close: (() -> Unit) = fun() { stop() }
 
     lateinit var selection: SingleSelection
@@ -47,6 +48,7 @@ class Terminal(
 
     fun start(): Int {
         try {
+            println(Charset.defaultCharset())
             startReadFromChannel()
         } catch (exception: Exception) {
             logger.error("error start terminal", exception)
@@ -75,9 +77,9 @@ class Terminal(
             while (channelInputStreamReader.read(readBuf).also { length = it } != -1) {
                 if (logger.isDebugEnabled) {
                     logger.debug("read from channel")
-                    logger.debug(String(readBuf, 0, length))
+                    logger.debug(String(readBuf, 0, length, Charset.defaultCharset()))
                 }
-                parser.onCharArray(readBuf.copyOfRange(0, length))
+                parser.onCharArray(String(readBuf, 0, length, Charset.defaultCharset()).toCharArray())
                 restrictCursor()
             }
         }.start()

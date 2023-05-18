@@ -24,11 +24,11 @@ class Parser(
 
 
     fun onCharArray(charArray: CharArray) {
-        charArray.forEach { onChar(it.code) }
+        charArray.forEach { onChar(it) }
     }
 
-    private fun onChar(code: Int) {
-        val (nextAction, nextState) = transitionTable.queryTable(code, currentState)
+    private fun onChar(code: Char) {
+        val (nextAction, nextState) = transitionTable.queryTable(code.code, currentState)
         when (nextAction) {
             ParserAction.IGNORE, ParserAction.ERROR -> {}
             ParserAction.PRINT -> {
@@ -36,7 +36,7 @@ class Parser(
             }
 
             ParserAction.EXECUTE -> {
-                terminalInputProcessor.singleCharacterFunProcessor.handleCode(code)
+                terminalInputProcessor.singleCharacterFunProcessor.handleCode(code.code)
             }
 
             ParserAction.CLEAR -> {
@@ -49,7 +49,7 @@ class Parser(
             }
 
             ParserAction.OSC_PUT -> {
-                oscHandler.put(code)
+                oscHandler.put(code.code)
             }
 
             ParserAction.OSC_END -> {
@@ -57,15 +57,15 @@ class Parser(
             }
 
             ParserAction.CSI_DISPATCH -> {
-                csiHandler.csiDispatch(collect, params, code)
+                csiHandler.csiDispatch(collect, params, code.code)
             }
 
             ParserAction.PARAM -> {
-                params.put(code)
+                params.put(code.code)
             }
 
             ParserAction.COLLECT -> {
-                collect.push(code.toChar())
+                collect.push(code)
             }
 
             ParserAction.ESC_DISPATCH -> {
@@ -77,7 +77,7 @@ class Parser(
             }
 
             ParserAction.DCS_PUT -> {
-                dcsHandler.put(code)
+                dcsHandler.put(code.code)
             }
 
             ParserAction.DCS_UNHOOK -> {

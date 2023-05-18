@@ -11,8 +11,8 @@ class TerminalOutputProcessor(
 ) : ITerminalOutputProcessorService {
     private val logger = LoggerFactory.getLogger(TerminalOutputProcessor::class.java)
 
-    override fun print(code: Int) {
-        if (code == 0xFFFF) {
+    override fun print(code: Char) {
+        if (code.code == 0xFFFF) {
             return
         }
         val activeBuffer = bufferService.activeBuffer
@@ -35,7 +35,7 @@ class TerminalOutputProcessor(
             val absoluteColumnNumber = cursor.getAbsoluteColumnNumber()
             lineAtCurrentCursor.replaceCell(absoluteColumnNumber, characterService.buildCell(code))
             if (logger.isDebugEnabled) {
-                logger.debug("write {} to ({},{})", Char(code), absoluteRowNumber, absoluteColumnNumber)
+                logger.debug("write {} to ({},{})", code, absoluteRowNumber, absoluteColumnNumber)
             }
             cursor.forward(1)
         } finally {

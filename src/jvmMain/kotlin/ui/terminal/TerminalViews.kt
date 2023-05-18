@@ -14,8 +14,8 @@ import terminal.ILine
 
 @Composable
 fun TerminalViews(model: CoCoTerminalAppState) {
-    val timer by remember { mutableStateOf(0) }
-    var screenLines: List<ILine>? = mutableStateListOf()
+    var timer by remember { mutableStateOf(0) }
+    var screenLines: List<ILine>? by remember { mutableStateOf(null, neverEqualPolicy()) }
 
     LaunchedEffect(timer) {
         while (true) {
@@ -27,8 +27,7 @@ fun TerminalViews(model: CoCoTerminalAppState) {
                     activeTerminal.cursorService.getAbsoluteRowNumber() + 1
                 )
             )
-            println(timer)
-            timer.inc()
+            timer = timer + 1
         }
     }
     Box(modifier = Modifier.padding(2.dp)) {

@@ -27,7 +27,7 @@ interface ICharacterService {
      */
     fun createEmptyCell(): ICell
 
-    fun buildCell(code: Int): ICell
+    fun buildCell(code: Char): ICell
 
     fun buildEmptyCells(count: Int): Array<ICell>
 
