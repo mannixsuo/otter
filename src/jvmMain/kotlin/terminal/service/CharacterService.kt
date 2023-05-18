@@ -7,14 +7,14 @@ import terminal.ICell
 
 class CharacterService(private val colors: Colors) : ICharacterService {
 
-    private var nextCharFgColor = colors.primary
-    private var nextCharBgColor = colors.background
+    private var nextCharFgColor: Color = colors.primary
+    private var nextCharBgColor: Color? = null
     private var nextCharBold = false
     private var nextCharItalic = false
 
     override fun normal() {
         nextCharFgColor = colors.primary
-        nextCharBgColor = colors.background
+        nextCharBgColor = null
         nextCharBold = false
         nextCharItalic = false
     }

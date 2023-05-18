@@ -1,12 +1,7 @@
 package terminal
 
 import androidx.compose.material.Colors
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.input.key.KeyEvent
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import parser.Parser
 import shell.Shell
@@ -22,13 +17,13 @@ class Terminal(
 ) {
     private val logger = LoggerFactory.getLogger(Terminal::class.java)
     private var errorInfo: String? = null
-    var version by mutableStateOf(0)
+    var focused: Boolean = false
     val state: IStateService = StateService()
     val configService: IConfigService = ConfigService(terminalConfig.rows, terminalConfig.columns, "title")
     private val characterService: ICharacterService = CharacterService(colors)
     val bufferService: IBufferService = BufferService(characterService)
     private val tableStopService: ITableStopService = TableStopService(terminalConfig.columns, terminalConfig.rows)
-    val cursorService: ICursorService = CursorService()
+    val cursorService: CursorService = CursorService()
     private val terminalOutputProcessor: ITerminalOutputProcessorService =
         TerminalOutputProcessor(bufferService, configService, characterService, cursorService)
     private val keyboardService: IKeyboardService = KeyboardService()
@@ -39,7 +34,7 @@ class Terminal(
     private val parser: Parser =
         Parser(configService, appState.transitionTable, terminalInputProcessorService, terminalOutputProcessor)
 
-    val readBuf = CharArray(1024)
+    private val readBuf = CharArray(1024)
     var close: (() -> Unit) = fun() { stop() }
 
     lateinit var selection: SingleSelection
@@ -67,22 +62,22 @@ class Terminal(
     }
 
     fun onKeyEvent(event: KeyEvent): Boolean {
-        keyboardService.onKeyEvent(event, channelOutputStreamWriter)
-        version = version++ % 10
-        return true
+        if (focused) {
+            keyboardService.onKeyEvent(event, channelOutputStreamWriter)
+            return true
+        }
+        return false
     }
 
     private fun startReadFromChannel() {
         Thread {
-            val buf = CharArray(1024)
             var length: Int
-            while (channelInputStreamReader.read(buf).also { length = it } != -1) {
+            while (channelInputStreamReader.read(readBuf).also { length = it } != -1) {
                 if (logger.isDebugEnabled) {
                     logger.debug("read from channel")
-                    logger.debug(String(buf, 0, length))
+                    logger.debug(String(readBuf, 0, length))
                 }
-                parser.onCharArray(buf.copyOfRange(0, length))
-                version = version++ % 10
+                parser.onCharArray(readBuf.copyOfRange(0, length))
                 restrictCursor()
             }
         }.start()

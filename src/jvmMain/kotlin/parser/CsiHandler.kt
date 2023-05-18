@@ -50,6 +50,15 @@ class CsiHandler(private val csiProcessor: CSIProcessor) {
         }
 
         val key = generateKey(finalCharCode, prefix, intermediate)
+        if (logger.isDebugEnabled) {
+            logger.debug(
+                "CSI {} {} {} {}",
+                prefix ?: ' ',
+                intermediate ?: ' ',
+                params.toIntArray(),
+                Char(finalCharCode)
+            )
+        }
         if (commandExecutorMap.containsKey(key)) {
             commandExecutorMap[key]?.invoke(params.toIntArray())
         } else {

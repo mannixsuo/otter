@@ -206,9 +206,7 @@ class CSIProcessor(
         with(activeBuffer) {
             when (params.elementAtOrElse(0) { 0 }) {
                 0 -> {
-                    getLine(cursorService.getAbsoluteRowNumber())?.let {
-                        it.deleteCells(IntRange(cursorService.getAbsoluteColumnNumber(), it.length()))
-                    }
+                    getLine(cursorService.getAbsoluteRowNumber())?.deleteToRight(cursorService.getAbsoluteColumnNumber())
                 }
 
                 1 -> {

@@ -83,6 +83,7 @@ interface ILine {
     fun length(): Int
 
     fun toAnnotatedString(cursorOnThisLine: Boolean, cursorX: Int, colors: Colors): AnnotatedString
+    fun deleteToRight(absoluteColumnNumber: Int)
 
 }
 
@@ -94,7 +95,7 @@ class Line(private val maxLength: Int, private val emptyCell: ICell) : ILine {
     private val _cells: MutableList<ICell> = mutableListOf()
 
     override fun getCell(index: Int): ICell {
-        return if (index < 0 || index > _length) {
+        return if (index < 0 || index >= _length) {
             emptyCell
         } else {
             _cells[index]
@@ -111,6 +112,14 @@ class Line(private val maxLength: Int, private val emptyCell: ICell) : ILine {
                 _cells[i] = _cells[i - 1]
             }
             _cells[index] = cell
+        }
+    }
+
+    override fun deleteToRight(absoluteColumnNumber: Int) {
+        val len = _length
+        for (i in absoluteColumnNumber until len) {
+            _cells[i] = emptyCell
+            _length--
         }
     }
 
@@ -134,7 +143,7 @@ class Line(private val maxLength: Int, private val emptyCell: ICell) : ILine {
 
     override fun replaceCell(index: Int, replacement: ICell) {
         if (index >= _length) {
-            for (i in _length .. index) {
+            for (i in _length..index) {
                 _cells.add(emptyCell)
             }
         }
@@ -174,7 +183,7 @@ class Line(private val maxLength: Int, private val emptyCell: ICell) : ILine {
     override fun deleteCells(range: IntRange) {
         val start = 0.coerceAtLeast(range.first)
         val end = _length.coerceAtMost(range.last)
-        for (i in start until end) {
+        for (i in start until end - 1) {
             _cells[i] = _cells[end + 1]
             _length--
         }
@@ -198,20 +207,33 @@ class Line(private val maxLength: Int, private val emptyCell: ICell) : ILine {
                     if (char.code == 0) {
                         text = if (cursorInThisPosition) '_' else ' '
                     }
-                    var spanStyle = SpanStyle(
-                        fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal,
-                        fontStyle = if (italic) FontStyle.Italic else FontStyle.Normal
-                    )
 
-                    if (cursorInThisPosition) {
-                        spanStyle = SpanStyle(
-                            background = colors.primary,
-                            color = colors.background,
-                            fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal,
-                            fontStyle = if (italic) FontStyle.Italic else FontStyle.Normal
-                        )
-                    }
-
+                    val spanStyle =
+                        if (cursorInThisPosition) {
+                            SpanStyle(
+                                background = colors.primary,
+                                color = colors.background,
+                                fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal,
+                                fontStyle = if (italic) FontStyle.Italic else FontStyle.Normal
+                            )
+                        } else {
+                            val bg = this.bg
+                            val fg = this.fg
+                            if (bg != null) {
+                                SpanStyle(
+                                    background = bg,
+                                    color = fg,
+                                    fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal,
+                                    fontStyle = if (italic) FontStyle.Italic else FontStyle.Normal
+                                )
+                            } else {
+                                SpanStyle(
+                                    color = fg,
+                                    fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal,
+                                    fontStyle = if (italic) FontStyle.Italic else FontStyle.Normal
+                                )
+                            }
+                        }
                     withStyle(
                         style = spanStyle
                     ) {

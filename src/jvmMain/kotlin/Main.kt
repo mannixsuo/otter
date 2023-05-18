@@ -15,7 +15,9 @@ import androidx.compose.ui.zIndex
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
 import com.pty4j.PtyProcessBuilder
-import config.*
+import config.Session
+import config.readConfigFromFile
+import config.writeConfigToFile
 import org.slf4j.LoggerFactory
 import shell.JschShell
 import shell.LocalPty
@@ -49,7 +51,7 @@ val applicationState = AppState();
 @Composable
 @Preview
 fun App(appState: CoCoTerminalAppState) {
-    val colors = MaterialTheme.colors
+    val colors = AppTheme.colors.material
     Surface(modifier = Modifier.zIndex(2F), elevation = 2.dp) {
         SessionSelection(
             appState.sessions,

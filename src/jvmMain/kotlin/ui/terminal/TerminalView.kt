@@ -6,16 +6,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import terminal.ILine
+import terminal.service.CursorService
 import terminal.service.IBufferService
 import terminal.service.IConfigService
-import terminal.service.ICursorService
 import ui.font.Fonts.jetbrainsMono
 
 private suspend fun AwaitPointerEventScope.awaitScrollEvent(): PointerEvent {
@@ -29,14 +30,21 @@ private suspend fun AwaitPointerEventScope.awaitScrollEvent(): PointerEvent {
 
 @Composable
 fun TerminalView(
-    version: Int,
+    focused: () -> Unit,
+    focusedOut: () -> Unit,
+    screenLines: List<ILine>,
     config: IConfigService,
     bufferService: IBufferService,
-    cursorService: ICursorService
+    cursorService: CursorService
 ) {
-    val state: MutableState<List<ILine>?> = remember { mutableStateOf(null, neverEqualPolicy()) }
 
-    SelectionContainer() {
+    SelectionContainer(modifier = Modifier.onFocusChanged {
+        if (it.isFocused) {
+            focused()
+        } else {
+            focusedOut()
+        }
+    }) {
         Column(
             modifier = Modifier.fillMaxSize()
                 .pointerInput(Unit) {
@@ -65,26 +73,16 @@ fun TerminalView(
                     }
                 },
         ) {
-            with(bufferService.activeBuffer) {
-                state.value = getLines(
-                    IntRange(
-                        cursorService.scrollY,
-                        cursorService.getAbsoluteRowNumber() + 1
+            for (index in screenLines.indices) {
+                Row {
+                    Line(
+                        screenLines[index],
+                        cursorService.scrollY + index == cursorService.getAbsoluteRowNumber(),
+                        cursorService.cursorX
                     )
-                )
-                state.value?.let {
-                    for (index in it.indices) {
-                        Row {
-                            Line(
-                                it[index],
-                                cursorService.scrollY + index == cursorService.getAbsoluteRowNumber(),
-                                cursorService.scrollX
-                            )
-                        }
-                    }
                 }
-
             }
+
         }
     }
 }
@@ -98,7 +96,6 @@ fun Line(line: ILine, cursorOnThisLine: Boolean, cursorX: Int) {
 
 @Composable
 fun LineContent(line: ILine, cursorOnThisLine: Boolean, cursorX: Int) {
-
     Row {
         Text(
             text = line.toAnnotatedString(cursorOnThisLine, cursorX, MaterialTheme.colors),

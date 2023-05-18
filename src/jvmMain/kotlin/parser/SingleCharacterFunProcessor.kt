@@ -102,7 +102,11 @@ class SingleCharacterFunProcessor(
      * make a new line at current line
      */
     private fun newLine() {
-        cursorService.down(1)
+        if (cursorService.cursorY == configService.maxRows - 1) {
+            cursorService.scrollY++
+        } else {
+            cursorService.down(1)
+        }
         bufferService
             .activeBuffer
             .insertLine(
