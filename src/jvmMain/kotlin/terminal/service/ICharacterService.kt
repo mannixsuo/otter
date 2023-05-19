@@ -32,5 +32,23 @@ interface ICharacterService {
     fun buildEmptyCells(count: Int): Array<ICell>
 
     fun fgYellow()
+    fun fgGreen()
+    fun fgBlue()
+
+    fun fgBlack()
+    fun fgRed()
+    fun fgMagenta()
+    fun fgWhite()
+    fun fgCyan()
+    fun bgBlack()
+    fun bgRed()
+    fun bgGreen()
+    fun bgYellow()
+    fun bgBlue()
+    fun bgMagenta()
+    fun bgCyan()
+    fun bgWhite()
+    fun fgDefault()
+    fun bgDefault()
 
 }

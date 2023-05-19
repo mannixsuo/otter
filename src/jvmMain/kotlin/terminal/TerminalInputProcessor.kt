@@ -2,8 +2,10 @@ package terminal
 
 import parser.SingleCharacterFunProcessor
 import terminal.service.*
+import java.io.OutputStreamWriter
 
 class TerminalInputProcessor(
+    channelOutputStreamWriter: OutputStreamWriter,
     bufferService: IBufferService,
     characterService: ICharacterService,
     cursorService: ICursorService,
@@ -13,7 +15,14 @@ class TerminalInputProcessor(
 ) : ITerminalInputProcessorService {
 
     override val csiProcessor =
-        CSIProcessor(bufferService, characterService, cursorService, stateService, configService)
+        CSIProcessor(
+            channelOutputStreamWriter,
+            bufferService,
+            characterService,
+            cursorService,
+            stateService,
+            configService
+        )
 
     override val singleCharacterFunProcessor = SingleCharacterFunProcessor(
         tableStopService, cursorService,

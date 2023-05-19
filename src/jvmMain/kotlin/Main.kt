@@ -79,8 +79,7 @@ fun App(appState: CoCoTerminalAppState) {
                             val localShell: Shell = LocalPty(
                                 PtyProcessBuilder(arrayOf(it.command))
                                     .setInitialColumns(terminalConfig.columns)
-//                                    .setConsole(true)
-//                                    .setCygwin(true)
+                                    .setDirectory(System.getProperty("user.home"))
                                     .setUseWinConPty(true)
                                     .setInitialRows(terminalConfig.rows).start()
                             )

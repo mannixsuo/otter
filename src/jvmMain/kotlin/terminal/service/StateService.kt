@@ -1,7 +1,5 @@
 package terminal.service
 
-import terminal.service.IStateService
-
 class StateService : IStateService {
     // DECKPAM
     private var applicationKeypad: Boolean = false
@@ -11,6 +9,9 @@ class StateService : IStateService {
 
     // DECTCEM
     private var showCursor: Boolean = true
+
+    //
+    private var bracketedPastMode = false
 
     override fun applicationKeyPad() {
         applicationKeypad = true
@@ -34,5 +35,13 @@ class StateService : IStateService {
 
     override fun hideCursor() {
         showCursor = false
+    }
+
+    override fun bracketedPastModeReset() {
+        bracketedPastMode = false
+    }
+
+    override fun bracketedPastModeSet() {
+        bracketedPastMode = true
     }
 }

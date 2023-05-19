@@ -8,6 +8,7 @@ class BufferService(private val characterService: ICharacterService) : IBufferSe
 
     private val mainBuffer: ILineBuffer = LineBuffer(characterService)
     private val alternativeBuffer: ILineBuffer = LineBuffer(characterService)
+
     override var activeBuffer = mainBuffer
 
     override fun switchToAlternativeBuffer() {

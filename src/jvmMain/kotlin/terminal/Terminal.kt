@@ -28,10 +28,19 @@ class Terminal(
     private val terminalOutputProcessor: ITerminalOutputProcessorService =
         TerminalOutputProcessor(bufferService, configService, characterService, cursorService)
     private val keyboardService: IKeyboardService = KeyboardService()
-    private val terminalInputProcessorService: ITerminalInputProcessorService =
-        TerminalInputProcessor(bufferService, characterService, cursorService, state, configService, tableStopService)
     private val channelInputStreamReader = shell.getChannelInputStream()
     private val channelOutputStreamWriter = shell.getChannelOutputStreamWriter()
+    private val terminalInputProcessorService: ITerminalInputProcessorService =
+        TerminalInputProcessor(
+            channelOutputStreamWriter,
+            bufferService,
+            characterService,
+            cursorService,
+            state,
+            configService,
+            tableStopService
+        )
+
     private val parser: Parser =
         Parser(configService, appState.transitionTable, terminalInputProcessorService, terminalOutputProcessor)
 
@@ -76,8 +85,18 @@ class Terminal(
             var length: Int
             while (channelInputStreamReader.read(readBuf).also { length = it } != -1) {
                 if (logger.isDebugEnabled) {
-                    logger.debug("read from channel")
-                    logger.debug(String(readBuf, 0, length, Charset.defaultCharset()))
+                    logger.debug("R: {}", String(readBuf, 0, length, Charset.defaultCharset()))
+                    val debugs = StringBuilder()
+                    for (i in readBuf.copyOf(length)) {
+                        if (i < 32) {
+                            debugs.append(i)
+                        } else {
+                            debugs.append(Char(i.toInt()))
+                        }
+                        debugs.append(" ")
+                    }
+                    logger.debug("B: {}", debugs.toString())
+
                 }
                 parser.onCharArray(String(readBuf, 0, length, Charset.defaultCharset()).toCharArray())
                 restrictCursor()

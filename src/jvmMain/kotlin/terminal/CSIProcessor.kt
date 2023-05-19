@@ -1,9 +1,11 @@
 package terminal
 
 import terminal.service.*
+import java.io.OutputStreamWriter
 import kotlin.math.max
 
 class CSIProcessor(
+    private val channelOutputStreamWriter: OutputStreamWriter,
     private val bufferService: IBufferService,
     private val characterService: ICharacterService,
     private val cursorService: ICursorService,
@@ -269,6 +271,11 @@ class CSIProcessor(
         TODO("Not yet implemented")
     }
 
+    fun deviceAttributes(params: Array<Int>) {
+        val vt100AD = charArrayOf(Char(27), '[', '?', '1', ';', '2', 'c')
+        channelOutputStreamWriter.write(vt100AD)
+    }
+
     /**
      * CSI ? Pm h
      * DEC Private Mode Set (DECSET).
@@ -278,6 +285,7 @@ class CSIProcessor(
             when (param) {
                 1 -> stateService.applicationCursorKeys()
                 25 -> stateService.showCursor()
+                2004 -> stateService.bracketedPastModeSet()
 
             }
         }
@@ -292,7 +300,22 @@ class CSIProcessor(
             when (param) {
                 1 -> stateService.normalCursorKeys()
                 25 -> stateService.hideCursor()
+                2004 -> stateService.bracketedPastModeReset()
 
+            }
+        }
+    }
+
+    /**
+     * CSI pm l
+     * Ps = 2  ⇒  Keyboard Action Mode (KAM).
+     *             Ps = 4  ⇒  Replace Mode (IRM).
+     *             Ps = 1 2  ⇒  Send/receive (SRM).
+     *             Ps = 2 0  ⇒  Normal Linefeed (LNM).
+     */
+    fun resetMode(params: Array<Int>) {
+        for (param in params) {
+            when (param) {
             }
         }
     }
@@ -306,7 +329,25 @@ class CSIProcessor(
                 0 -> characterService.normal()
                 1 -> characterService.bold()
                 3 -> characterService.italic()
+                90 -> characterService.fgBlack()
+                91 -> characterService.fgRed()
+                92 -> characterService.fgGreen()
                 33, 93 -> characterService.fgYellow()
+                34, 94 -> characterService.fgBlue()
+                35, 95 -> characterService.fgMagenta()
+                36, 96 -> characterService.fgCyan()
+                37, 97 -> characterService.fgWhite()
+                39 -> characterService.fgDefault()
+                40, 100 -> characterService.bgBlack()
+                41, 101 -> characterService.bgRed()
+                42, 102 -> characterService.bgGreen()
+                43, 103 -> characterService.bgYellow()
+                44, 104 -> characterService.bgBlue()
+                45, 105 -> characterService.bgMagenta()
+                46, 106 -> characterService.bgCyan()
+                47, 107 -> characterService.bgWhite()
+                49 -> characterService.bgDefault()
+
             }
         }
     }

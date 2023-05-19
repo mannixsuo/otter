@@ -35,10 +35,73 @@ class CharacterService(private val colors: Colors) : ICharacterService {
         nextCharFgColor = Color.Yellow
     }
 
-    fun fgDefault() {
+    override fun fgGreen() {
+        nextCharFgColor = Color.Green
+    }
+
+    override fun fgBlue() {
+        nextCharFgColor = Color.Blue
+    }
+
+    override fun fgBlack() {
+        nextCharFgColor = Color.Black
+    }
+
+    override fun fgRed() {
+        nextCharFgColor = Color.Red
+    }
+
+    override fun fgMagenta() {
+        nextCharFgColor = Color.Magenta
+    }
+
+    override fun fgWhite() {
+        nextCharFgColor = Color.White
+    }
+
+    override fun fgCyan() {
+        nextCharFgColor = Color.Cyan
+    }
+
+    override fun fgDefault() {
         nextCharFgColor = colors.primary
     }
 
+    override fun bgDefault() {
+        nextCharBgColor = null
+    }
+
+    override fun bgBlack() {
+        nextCharBgColor = Color.Black
+    }
+
+    override fun bgRed() {
+        nextCharBgColor = Color.Red
+    }
+
+    override fun bgGreen() {
+        nextCharBgColor = Color.Green
+    }
+
+    override fun bgYellow() {
+        nextCharBgColor = Color.Yellow
+    }
+
+    override fun bgBlue() {
+        nextCharBgColor = Color.Blue
+    }
+
+    override fun bgMagenta() {
+        nextCharBgColor = Color.Magenta
+    }
+
+    override fun bgCyan() {
+        nextCharBgColor = Color.Cyan
+    }
+
+    override fun bgWhite() {
+        nextCharBgColor = Color.White
+    }
 
     override fun buildCell(char: Char): ICell {
         return Cell(

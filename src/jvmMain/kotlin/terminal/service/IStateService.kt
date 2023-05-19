@@ -39,4 +39,6 @@ interface IStateService {
      * DECTCEM
      */
     fun hideCursor()
+    fun bracketedPastModeReset()
+    fun bracketedPastModeSet()
 }

@@ -91,8 +91,10 @@ class CsiHandler(private val csiProcessor: CSIProcessor) {
                 put(CsiCommand('L', null, null).key()) { params -> insertLines(params) }
                 put(CsiCommand('M', null, null).key()) { params -> deleteLines(params) }
                 put(CsiCommand('P', null, null).key()) { params -> deleteCharacters(params) }
+                put(CsiCommand('c', null, null).key()) { params -> deviceAttributes(params) }
                 put(CsiCommand('h', '?', null).key()) { params -> decPrivateModeSet(params) }
                 put(CsiCommand('l', '?', null).key()) { params -> decPrivateModeReSet(params) }
+                put(CsiCommand('l', null, null).key()) { params -> resetMode(params) }
                 put(CsiCommand('m', null, null).key()) { params -> characterAttributes(params) }
             }
 
