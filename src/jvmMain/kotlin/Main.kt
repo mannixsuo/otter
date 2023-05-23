@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.res.loadImageBitmap
 import androidx.compose.ui.res.useResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.singleWindowApplication
@@ -27,6 +28,7 @@ import terminal.Terminal
 import terminal.TerminalConfig
 import ui.AppTheme
 import ui.AppWindowState
+import ui.font.Fonts
 import ui.session.AddSessionModal
 import ui.session.SessionSelection
 import ui.session.SessionSelectionState
@@ -35,7 +37,8 @@ import ui.terminal.Terminals
 
 class CoCoTerminalAppState(
     val terminals: Terminals,
-    sessionList: List<Session>
+    sessionList: List<Session>,
+    val fontFamily: FontFamily
 ) {
     var windowState: AppWindowState by mutableStateOf(AppWindowState.NORMAL)
     val sessions = sessionList.toMutableStateList()
@@ -63,7 +66,8 @@ fun App(appState: CoCoTerminalAppState) {
                     "SSH" -> {
                         session.ssh?.let {
                             val shell = JschShell(it.host, it.port, it.user, it.password)
-                            val terminal = Terminal(shell, terminalConfig, applicationState, colors)
+                            val terminal =
+                                Terminal(shell, terminalConfig, applicationState, colors, appState.fontFamily)
                             if (terminal.start() == 0) {
                                 appState.terminals.addNewTerminal(terminal)
                                 appState.sessions.add(session)
@@ -83,7 +87,8 @@ fun App(appState: CoCoTerminalAppState) {
                                     .setUseWinConPty(true)
                                     .setInitialRows(terminalConfig.rows).start()
                             )
-                            val terminal = Terminal(localShell, terminalConfig, applicationState, colors)
+                            val terminal =
+                                Terminal(localShell, terminalConfig, applicationState, colors, appState.fontFamily)
                             if (terminal.start() == 0) {
                                 appState.terminals.addNewTerminal(terminal)
                                 appState.sessions.add(session)
@@ -121,6 +126,7 @@ fun main() = singleWindowApplication(
     val appState = CoCoTerminalAppState(
         terminals,
         appConfig.sessionList,
+        Fonts.jetbrainsMono()
     )
 
     MaterialTheme(

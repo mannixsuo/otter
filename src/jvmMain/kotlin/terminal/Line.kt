@@ -82,7 +82,7 @@ interface ILine {
      */
     fun length(): Int
 
-    fun toAnnotatedString(cursorOnThisLine: Boolean, cursorX: Int, colors: Colors): AnnotatedString
+    fun toAnnotatedString(cursorOnThisLine: Boolean, cursorX: Int, colors: Colors, showCursor: Boolean): AnnotatedString
     fun deleteToRight(absoluteColumnNumber: Int)
 
 }
@@ -197,10 +197,15 @@ class Line(private val maxLength: Int, private val emptyCell: ICell) : ILine {
         return _length
     }
 
-    override fun toAnnotatedString(cursorOnThisLine: Boolean, cursorX: Int, colors: Colors): AnnotatedString {
+    override fun toAnnotatedString(
+        cursorOnThisLine: Boolean,
+        cursorX: Int,
+        colors: Colors,
+        showCursor: Boolean
+    ): AnnotatedString {
         return buildAnnotatedString {
             for (index in 0 until _length.coerceAtLeast(cursorX)) {
-                val cursorInThisPosition: Boolean = cursorOnThisLine && cursorX == index
+                val cursorInThisPosition: Boolean = cursorOnThisLine && (cursorX == index) && showCursor
 
                 with(getCell(index)) {
                     var text = char

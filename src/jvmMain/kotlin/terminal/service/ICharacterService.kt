@@ -51,4 +51,6 @@ interface ICharacterService {
     fun fgDefault()
     fun bgDefault()
 
+    fun underLine()
+
 }

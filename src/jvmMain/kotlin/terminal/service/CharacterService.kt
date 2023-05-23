@@ -11,12 +11,14 @@ class CharacterService(private val colors: Colors) : ICharacterService {
     private var nextCharBgColor: Color? = null
     private var nextCharBold = false
     private var nextCharItalic = false
+    private var nextCharUnderLine = false
 
     override fun normal() {
         nextCharFgColor = colors.primary
         nextCharBgColor = null
         nextCharBold = false
         nextCharItalic = false
+        nextCharUnderLine = false
     }
 
     override fun bold() {
@@ -69,6 +71,10 @@ class CharacterService(private val colors: Colors) : ICharacterService {
 
     override fun bgDefault() {
         nextCharBgColor = null
+    }
+
+    override fun underLine() {
+        nextCharUnderLine = true
     }
 
     override fun bgBlack() {

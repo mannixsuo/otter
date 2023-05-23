@@ -137,8 +137,8 @@ class CSIProcessor(
      * Cursor Position [row;column] (default = [1,1]) (CUP).
      */
     fun cursorPosition(params: Array<Int>) {
-        cursorService.cursorY = max(1, params.elementAtOrElse(0) { 0 })
-        cursorService.cursorX = max(1, params.elementAtOrElse(1) { 0 })
+        cursorService.cursorY = max(0, params.elementAtOrElse(0) { 0 } - 1)
+        cursorService.cursorX = max(0, params.elementAtOrElse(1) { 0 } - 1)
     }
 
     /**
@@ -273,7 +273,8 @@ class CSIProcessor(
 
     fun deviceAttributes(params: Array<Int>) {
         val vt100AD = charArrayOf(Char(27), '[', '?', '1', ';', '2', 'c')
-        channelOutputStreamWriter.write(vt100AD)
+        val vt525AD = charArrayOf(Char(27), '[', '>', '6', '5', ';', '3', '3', '0', 'c')
+        channelOutputStreamWriter.write(vt525AD)
     }
 
     /**
@@ -284,7 +285,7 @@ class CSIProcessor(
         for (param in params) {
             when (param) {
                 1 -> stateService.applicationCursorKeys()
-                25 -> stateService.showCursor()
+                25 -> cursorService.showCursor = true
                 2004 -> stateService.bracketedPastModeSet()
 
             }
@@ -299,7 +300,7 @@ class CSIProcessor(
         for (param in params) {
             when (param) {
                 1 -> stateService.normalCursorKeys()
-                25 -> stateService.hideCursor()
+                25 -> cursorService.showCursor = false
                 2004 -> stateService.bracketedPastModeReset()
 
             }
@@ -329,6 +330,7 @@ class CSIProcessor(
                 0 -> characterService.normal()
                 1 -> characterService.bold()
                 3 -> characterService.italic()
+                4 -> characterService.underLine()
                 90 -> characterService.fgBlack()
                 91 -> characterService.fgRed()
                 92 -> characterService.fgGreen()

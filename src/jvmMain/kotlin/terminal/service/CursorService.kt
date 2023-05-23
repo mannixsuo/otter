@@ -1,15 +1,12 @@
 package terminal.service
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-
 class CursorService : ICursorService {
 
-    override var cursorX: Int by mutableStateOf(0)
-    override var scrollX: Int by mutableStateOf(0)
-    override var cursorY: Int by mutableStateOf(0)
-    override var scrollY: Int by mutableStateOf(0)
+    override var showCursor: Boolean = false
+    override var cursorX: Int = 0
+    override var scrollX: Int = 0
+    override var cursorY: Int = 0
+    override var scrollY: Int = 0
 
 
     override fun forward(count: Int) {

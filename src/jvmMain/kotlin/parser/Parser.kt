@@ -4,20 +4,22 @@ import character.TransitionTable
 import terminal.service.IConfigService
 import terminal.service.ITerminalInputProcessorService
 import terminal.service.ITerminalOutputProcessorService
+import java.io.OutputStreamWriter
 import java.util.*
 
 class Parser(
     private val configService: IConfigService,
     private val transitionTable: TransitionTable,
     private val terminalInputProcessor: ITerminalInputProcessorService,
-    private val terminalOutputProcessorService: ITerminalOutputProcessorService
+    private val terminalOutputProcessorService: ITerminalOutputProcessorService,
+    channelOutputStreamWriter: OutputStreamWriter
 ) {
 
     private var currentState = ParserState.GROUND
     private var currentAction = ParserAction.PRINT
     private var params = Params()
     private var collect = Stack<Char>()
-    private val oscHandler = OSCHandler(configService)
+    private val oscHandler = OSCHandler(configService, channelOutputStreamWriter)
     private var dcsHandler = DCSHandler()
     private val csiHandler = CsiHandler(terminalInputProcessor.csiProcessor)
     private val escHandler = EscHandler(terminalInputProcessor.escProcessor)

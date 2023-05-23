@@ -17,6 +17,7 @@ class SingleCharacterFunProcessor(
     fun handleCode(code: Int) {
         with(commandExecutorMap) {
             if (containsKey(code)) {
+                logger.info(code.toString())
                 get(code)!!.invoke()
             } else {
                 logger.info("NO C0C1CONTROLFUNCTIONEXECUTOR FOUND FOR $code")
@@ -102,10 +103,10 @@ class SingleCharacterFunProcessor(
      * make a new line at current line
      */
     private fun newLine() {
-        if (cursorService.cursorY == configService.maxRows - 1) {
+        cursorService.down(1)
+        if (cursorService.cursorY >= configService.maxRows) {
             cursorService.scrollY++
-        } else {
-            cursorService.down(1)
+            cursorService.up(1)
         }
         bufferService
             .activeBuffer
@@ -113,6 +114,7 @@ class SingleCharacterFunProcessor(
                 cursorService.getAbsoluteRowNumber(),
                 Line(configService.maxColumns, characterService.createEmptyCell())
             )
+
     }
 }
 

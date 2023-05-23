@@ -35,7 +35,7 @@ class TerminalOutputProcessor(
             val absoluteColumnNumber = cursor.getAbsoluteColumnNumber()
             lineAtCurrentCursor.replaceCell(absoluteColumnNumber, characterService.buildCell(code))
             if (logger.isDebugEnabled) {
-//                logger.debug("write {} to ({},{})", code, absoluteRowNumber, absoluteColumnNumber)
+                logger.debug("write {} to ({},{})", code, absoluteRowNumber, absoluteColumnNumber)
             }
             cursor.forward(1)
         } finally {

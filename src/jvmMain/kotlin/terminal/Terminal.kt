@@ -2,27 +2,29 @@ package terminal
 
 import androidx.compose.material.Colors
 import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.text.font.FontFamily
 import org.slf4j.LoggerFactory
 import parser.Parser
 import shell.Shell
 import terminal.service.*
 import ui.SingleSelection
 import java.nio.charset.Charset
-import kotlin.math.max
 
 class Terminal(
     private val shell: Shell,
     private val terminalConfig: TerminalConfig,
     appState: AppState,
-    colors: Colors
+    colors: Colors,
+    fontFamily: FontFamily
 ) {
     private val logger = LoggerFactory.getLogger(Terminal::class.java)
     private var errorInfo: String? = null
     var focused: Boolean = false
     val state: IStateService = StateService()
-    val configService: IConfigService = ConfigService(terminalConfig.rows, terminalConfig.columns, "title")
+    val configService: IConfigService =
+        ConfigService(terminalConfig.rows, terminalConfig.columns, "title", colors, fontFamily)
     private val characterService: ICharacterService = CharacterService(colors)
-    val bufferService: IBufferService = BufferService(characterService)
+    val bufferService: IBufferService = BufferService(characterService, configService)
     private val tableStopService: ITableStopService = TableStopService(terminalConfig.columns, terminalConfig.rows)
     val cursorService: CursorService = CursorService()
     private val terminalOutputProcessor: ITerminalOutputProcessorService =
@@ -42,7 +44,13 @@ class Terminal(
         )
 
     private val parser: Parser =
-        Parser(configService, appState.transitionTable, terminalInputProcessorService, terminalOutputProcessor)
+        Parser(
+            configService,
+            appState.transitionTable,
+            terminalInputProcessorService,
+            terminalOutputProcessor,
+            channelOutputStreamWriter
+        )
 
     private val readBuf = ByteArray(1024)
     var close: (() -> Unit) = fun() { stop() }
@@ -99,13 +107,8 @@ class Terminal(
 
                 }
                 parser.onCharArray(String(readBuf, 0, length, Charset.defaultCharset()).toCharArray())
-                restrictCursor()
             }
         }.start()
-    }
-
-    private fun restrictCursor() {
-        cursorService.scrollY = max(bufferService.activeBuffer.lineCount() - terminalConfig.rows, 0)
     }
 
 }

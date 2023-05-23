@@ -13,11 +13,11 @@ import androidx.compose.ui.input.pointer.AwaitPointerEventScope
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.font.FontFamily
 import terminal.ILine
 import terminal.service.CursorService
 import terminal.service.IBufferService
 import terminal.service.IConfigService
-import ui.font.Fonts.jetbrainsMono
 
 private suspend fun AwaitPointerEventScope.awaitScrollEvent(): PointerEvent {
     var event: PointerEvent
@@ -66,7 +66,6 @@ fun TerminalView(
                                         .lineCount() - cursorService.scrollY < config.maxRows
                                 ) {
                                     cursorService.scrollY = bufferService.activeBuffer.lineCount() - config.maxRows
-
                                 }
                             }
                         }
@@ -78,7 +77,9 @@ fun TerminalView(
                     Line(
                         screenLines[index],
                         cursorService.scrollY + index == cursorService.getAbsoluteRowNumber(),
-                        cursorService.cursorX
+                        cursorService.cursorX,
+                        config.fontFamily,
+                        cursorService.showCursor
                     )
                 }
             }
@@ -90,20 +91,20 @@ fun TerminalView(
 
 // cursorBlink: () -> Boolean : use function so only rows that cursor affects repaint every time cursor blink
 @Composable
-fun Line(line: ILine, cursorOnThisLine: Boolean, cursorX: Int) {
-    LineContent(line, cursorOnThisLine, cursorX)
+fun Line(line: ILine, cursorOnThisLine: Boolean, cursorX: Int, fontFamily: FontFamily, showCursor: Boolean) {
+    LineContent(line, cursorOnThisLine, cursorX, fontFamily, showCursor)
 }
 
 @Composable
-fun LineContent(line: ILine, cursorOnThisLine: Boolean, cursorX: Int) {
+fun LineContent(line: ILine, cursorOnThisLine: Boolean, cursorX: Int, fontFamily: FontFamily, showCursor: Boolean) {
     Row {
         Text(
-            text = line.toAnnotatedString(cursorOnThisLine, cursorX, MaterialTheme.colors),
-            fontFamily = jetbrainsMono(),
+            text = line.toAnnotatedString(cursorOnThisLine, cursorX, MaterialTheme.colors, showCursor),
+            fontFamily = fontFamily,
             softWrap = false
         )
 
-        if (cursorOnThisLine) {
+        if (cursorOnThisLine && showCursor) {
             val cursorInText: Boolean = line.length() != 0 && cursorX < line.length()
             if (!cursorInText) {
                 for (index in line.length() until cursorX) {

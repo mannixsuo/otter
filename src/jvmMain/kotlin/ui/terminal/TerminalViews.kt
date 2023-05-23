@@ -19,15 +19,15 @@ fun TerminalViews(model: CoCoTerminalAppState) {
 
     LaunchedEffect(timer) {
         while (true) {
-            delay(500)
+            delay(200)
             val activeTerminal = model.terminals.activeTerminal
             screenLines = activeTerminal?.bufferService?.activeBuffer?.getLines(
                 IntRange(
                     activeTerminal.cursorService.scrollY,
-                    activeTerminal.cursorService.getAbsoluteRowNumber() + 1
+                    activeTerminal.cursorService.scrollY + activeTerminal.configService.maxRows
                 )
             )
-            timer = timer + 1
+            timer %= 100
         }
     }
     Box(modifier = Modifier.padding(2.dp)) {

@@ -4,6 +4,8 @@ package terminal.service
  * save and manipulate cursor info
  */
 interface ICursorService {
+
+    var showCursor: Boolean
     var cursorX: Int
     var scrollX: Int
     var cursorY: Int
